@@ -1,20 +1,25 @@
 #!/usr/bin/env python
 # -*-python-*-
 
+import os
+import sys
 import logging
-logging.basicConfig(level=logging.INFO)
 
 import sys
 import re
-
-import geojson
 import subprocess
+
+import StringIO
 
 import mapzen.whosonfirst.validator
 import mapzen.whosonfirst.export
 import mapzen.whosonfirst.utils
 
+logging.basicConfig(level=logging.INFO)
+
 if __name__ == '__main__':
+
+   logging.info("invoking git-whosonfirst-mapzen pre-commit hooks")
 
    # who's on first... har har har... sad trombone
    
@@ -26,6 +31,7 @@ if __name__ == '__main__':
    root = os.path.dirname(dotgit)
 
    data = os.path.join(root, "data")
+   meta = os.path.join(root, "meta")
 
    # sudo put me in a function
 
@@ -53,37 +59,38 @@ if __name__ == '__main__':
       sys.exit(0)
 
    exporter = mapzen.whosonfirst.export.flatfile(data)
-
-   meta_files = {}
+   updated = []
 
    for f in files:
 
+      path = os.path.join(root, f)
+      logging.info("validating %s" % path)
+
       vld = mapzen.whosonfirst.validator.validator()
-      rpt = vld.validate_file(f)
+      rpt = vld.validate_file(path)
 
-      if rpt.ok():
-         logging.info("%s passes validation test" % f)
-      else:
+      if not rpt.ok():
 
-         # print report here...
+         logging.error("%s FAILED validation test" % path)
 
-         logging.error("%s FAILED validation test" % f)
+         # sudo make the following less bad...
+         # (20151111/thisisaaronland)
+
+         fh = StringIO.StringIO()
+         rpt.print_report(fh)
+         fh.seek(0)
+
+         logging.error("validation report is:\n%s" % "".join(fh.readlines()))
+
          sys.exit(1)
 
-      fh = open(f, 'r')
-      feature = geojson.load(fh)
+      logging.info("formatting and exportifying %s" % path)
 
-      props = feature['properties']
-      wofid = props['wof:id']
-      placetype = props['wof:placetype']
-
-      to_update = meta_files.get(placetype, [])
-      to_update.append(wofid)
-
-      meta_files[placetype] = to_update
-
+      feature = mapzen.whosonfirst.utils.load_file(path)
       exporter.export_feature(feature)
 
-   # process meta files here
+      updated.append(path)
 
-   sys.exit(1)
+   mapzen.whosonfirst.utils.update_placetype_metafiles(meta, updated)
+
+   sys.exit(0)
