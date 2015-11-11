@@ -1,0 +1,15 @@
+#!/usr/bin/enc python
+# -*-python-*-
+
+import sys
+import subprocess
+
+import mapzen.whosonfirst.validator
+import mapzen.whosonfirst.exporter
+import mapzen.whosonfirst.utils
+
+if __name__ == '__main__':
+
+    # vld = mapzen.whosonfirst.validator.validator()
+    # rpt = vld.validate_feature(feature)
+   
