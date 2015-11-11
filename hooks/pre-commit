@@ -58,15 +58,16 @@ if __name__ == '__main__':
    if len(files) == 0:
       sys.exit(0)
 
+   vld = mapzen.whosonfirst.validator.validator()
+
    exporter = mapzen.whosonfirst.export.flatfile(data)
    updated = []
-
+      
    for f in files:
 
       path = os.path.join(root, f)
       logging.info("validating %s" % path)
 
-      vld = mapzen.whosonfirst.validator.validator()
       rpt = vld.validate_file(path)
 
       if not rpt.ok():
