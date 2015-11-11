@@ -26,6 +26,14 @@ To install the pre-commit hook you will need to copy (or symlink) the [hooks/pre
 $> ln -s /usr/local/mapzen/git-whosonfirst-data/hooks/pre-commit /usr/local/mapzen/whosonfirst-data/.git/hooks/pre-commit
 ```
 
+## Dependencies
+
+Currently this repository lacks a handy script for installing dependencies so you will need to ensure the following are installed:
+
+* https://github.com/whosonfirst/py-mapzen-whosonfirst-utils
+* https://github.com/whosonfirst/py-mapzen-whosonfirst-export
+* https://github.com/whosonfirst/py-mapzen-whosonfirst-validator
+
 ## See also
 
 * https://github.com/whosonfirst/whosonfirst-data

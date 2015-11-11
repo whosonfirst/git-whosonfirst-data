@@ -49,6 +49,7 @@ if __name__ == '__main__':
          fname = match.group('name')
          
          # account for alt files here... how?
+         # also sudo put this logic in a function
 
          if fname.endswith(".geojson"):
             files.append(fname)

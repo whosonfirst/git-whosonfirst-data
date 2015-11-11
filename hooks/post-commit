@@ -1,0 +1,45 @@
+#!/usr/bin/env python
+# -*-python-*-
+
+import os
+import sys
+import logging
+
+import subprocess
+
+logging.basicConfig(level=logging.INFO)
+
+if __name__ == '__main__':
+
+   logging.info("invoking git-whosonfirst-mapzen post-commit hooks")
+
+   # who's on first... har har har... sad trombone
+   
+   whoami = sys.argv[0]
+   whoami = os.path.abspath(whoami)
+
+   hooks = os.path.dirname(whoami)
+   dotgit = os.path.dirname(hooks)
+   root = os.path.dirname(dotgit)
+
+   data = os.path.join(root, "data")
+   meta = os.path.join(root, "meta")
+
+   out = subprocess.check_output(["git", "show", "--pretty=\"format:\"", "--name-only", "HEAD"])
+   files = []
+
+   for fname in out.splitlines():
+
+      # account for alt files here... how?
+      # also sudo put this logic in a function
+
+      if fname.endswith(".geojson"):
+         files.append(fname)
+
+   if len(files) == 0:
+      sys.exit(0)
+
+   for f in files:
+
+      path = os.path.join(root, f)
+      logging.info("processing %s" % path)
