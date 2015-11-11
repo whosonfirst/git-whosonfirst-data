@@ -7,6 +7,7 @@ logging.basicConfig(level=logging.INFO)
 import sys
 import re
 
+import geojson
 import subprocess
 
 import mapzen.whosonfirst.validator
@@ -14,6 +15,17 @@ import mapzen.whosonfirst.export
 import mapzen.whosonfirst.utils
 
 if __name__ == '__main__':
+
+   # who's on first... har har har... sad trombone
+   
+   whoami = sys.argv[0]
+   whoami = os.path.abspath(whoami)
+
+   hooks = os.path.dirname(whoami)
+   dotgit = os.path.dirname(hooks)
+   root = os.path.dirname(dotgit)
+
+   data = os.path.join(root, "data")
 
    # sudo put me in a function
 
@@ -40,6 +52,10 @@ if __name__ == '__main__':
    if len(files) == 0:
       sys.exit(0)
 
+   exporter = mapzen.whosonfirst.export.flatfile(data)
+
+   meta_files = {}
+
    for f in files:
 
       vld = mapzen.whosonfirst.validator.validator()
@@ -48,9 +64,25 @@ if __name__ == '__main__':
       if rpt.ok():
          logging.info("%s passes validation test" % f)
       else:
-         logging.error("%s FAILED validation test" % f)
 
-      # format / exportify here
+         # print report here...
+
+         logging.error("%s FAILED validation test" % f)
+         sys.exit(1)
+
+      fh = open(f, 'r')
+      feature = geojson.load(fh)
+
+      props = feature['properties']
+      wofid = props['wof:id']
+      placetype = props['wof:placetype']
+
+      to_update = meta_files.get(placetype, [])
+      to_update.append(wofid)
+
+      meta_files[placetype] = to_update
+
+      exporter.export_feature(feature)
 
    # process meta files here
 
