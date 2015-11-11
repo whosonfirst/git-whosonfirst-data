@@ -1,15 +1,57 @@
-#!/usr/bin/enc python
+#!/usr/bin/env python
 # -*-python-*-
 
+import logging
+logging.basicConfig(level=logging.INFO)
+
 import sys
+import re
+
 import subprocess
 
 import mapzen.whosonfirst.validator
-import mapzen.whosonfirst.exporter
+import mapzen.whosonfirst.export
 import mapzen.whosonfirst.utils
 
 if __name__ == '__main__':
 
-    # vld = mapzen.whosonfirst.validator.validator()
-    # rpt = vld.validate_feature(feature)
-   
+   # sudo put me in a function
+
+   modified = re.compile('^[MA]\s+(?P<name>.*)$')
+
+   out = subprocess.check_output(["git", "status", "--porcelain"])
+   files = []
+
+   for line in out.splitlines():
+
+      match = modified.match(line)
+
+      if match:
+
+         fname = match.group('name')
+         
+         # account for alt files here... how?
+
+         if fname.endswith(".geojson"):
+            files.append(fname)
+      
+   # end sudo put me in a function
+
+   if len(files) == 0:
+      sys.exit(0)
+
+   for f in files:
+
+      vld = mapzen.whosonfirst.validator.validator()
+      rpt = vld.validate_file(f)
+
+      if rpt.ok():
+         logging.info("%s passes validation test" % f)
+      else:
+         logging.error("%s FAILED validation test" % f)
+
+      # format / exportify here
+
+   # process meta files here
+
+   sys.exit(1)
