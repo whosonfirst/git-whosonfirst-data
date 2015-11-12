@@ -19,7 +19,12 @@ logging.basicConfig(level=logging.INFO)
 
 if __name__ == '__main__':
 
-   logging.info("invoking git-whosonfirst-mapzen pre-commit hooks")
+   out = subprocess.check_output(["git", "log", "-1", "HEAD"])
+   out = out.splitlines()
+   
+   ignore, hash = out[0].split(" ")
+
+   logging.info("invoking git-whosonfirst-mapzen pre-commit hooks for %s" % hash)
 
    # who's on first... har har har... sad trombone
    
@@ -57,16 +62,8 @@ if __name__ == '__main__':
    # end sudo put me in a function
 
    if len(files) == 0:
+      logging.info("nothing in this commit that we need to apply pre-commit to")
       sys.exit(0)
-
-   # who am I? this is relevant if we need to amend the commit
-   # below
-
-   out = subprocess.check_output(["git", "log", "-1", "HEAD"])
-   out = out.splitlines()
-   
-   ignore, hash = out[0].split(" ")
-   logging.info("processing commit hash %s" % hash)
 
    vld = mapzen.whosonfirst.validator.validator()
 
@@ -94,7 +91,6 @@ if __name__ == '__main__':
          fh.seek(0)
 
          logging.error("validation report is:\n%s" % "".join(fh.readlines()))
-
          sys.exit(1)
 
       logging.info("formatting and exportifying %s" % abs_path)
@@ -114,20 +110,13 @@ if __name__ == '__main__':
       updated.append(abs_path)
       recommit.append(rel_path)
 
-   # this is the part where we update / append the commit 
-   # note: this is not working or rather appears to be working but spewing errors like this:
-   # fatal: cannot lock ref 'HEAD': ref refs/heads/master is at d5481aa574bd322da0408473449c058e9e3210aa but expected 450206eeca8df3ec594f4e7b2a43f70dc7356842
-
-   # see also:
-   # https://stackoverflow.com/questions/3284292/can-a-git-hook-automatically-add-files-to-the-commit
+   # these are the meta files (including the -latest.csv pointers) that need to be made relative
+   # in order to dance with the git commit
    
    _modified, _created = mapzen.whosonfirst.utils.update_placetype_metafiles(meta, updated)
 
    modified = []
    created = []
-
-   # these are the meta files (including the -latest.csv pointers) that need to be made relative
-   # in order to dance with the git commit
 
    for path in _modified:
       path = path.replace(root + "/", "")
@@ -140,30 +129,22 @@ if __name__ == '__main__':
    recommit.extend(modified)
    recommit.extend(created)
 
-   logging.info("files modified during pre-commit %s" % ";".join(recommit))
+   # this is the part where we write the modified files to disk to be picked up by the
+   # post-commit hook because trying to add them to the git index here results in one
+   # face-stabby git error after another (take your pick) - if someone knows how to do
+   # this (add/append the newly modified files to the current commit) at this stage I 
+   # would love to hear about it. (20151112/thisisaaronland)
 
-   if len(created):
-      cmd = ["git", "add"]
-      cmd.extend(created)
+   # see also:
+   # https://stackoverflow.com/questions/3284292/can-a-git-hook-automatically-add-files-to-the-commit
 
-      logging.info(" ".join(cmd))
-      out = subprocess.check_output(cmd)
+   if len(recommit):
 
-      logging.info(out)
+      dotcommit = os.path.join(root, ".commit")
+      logging.info("writing %s to disk to be processed by the post-commit hook" % dotcommit)
 
-   # Hey look - see the '--no-verify' flag? That is the important bit that
-   # prevents this whole process from spiraling in to a neverending spiral
-   # of git pre-commiting itself over and over and over and over and well
-   # you get the point (20151112/thisisaaronland)
+      fh = open(dotcommit, "w")
+      fh.write("\n".join(recommit))
+      fh.close()
 
-   # Note that hash is defined up above after we've ensured that there are
-   # some files we care about pre-commit-ing
-
-   cmd = ["git", "commit", "--amend", "-C", hash, "--no-verify"]
-   cmd.extend(recommit)
-
-   logging.info(" ".join(cmd))
-   out = subprocess.check_output(cmd)
-
-   logging.info(out)
    sys.exit(0)

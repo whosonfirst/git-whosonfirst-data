@@ -6,14 +6,18 @@ import sys
 import logging
 
 import subprocess
-
 import mapzen.whosonfirst.aws
 
 logging.basicConfig(level=logging.INFO)
 
 if __name__ == '__main__':
 
-   logging.info("invoking git-whosonfirst-mapzen post-commit hooks")
+   out = subprocess.check_output(["git", "log", "-1", "HEAD"])
+   out = out.splitlines()
+   
+   ignore, hash = out[0].split(" ")
+
+   logging.info("invoking git-whosonfirst-mapzen post-commit hooks for %s" % hash)
 
    # who's on first... har har har... sad trombone
    
@@ -30,6 +34,57 @@ if __name__ == '__main__':
    out = subprocess.check_output(["git", "show", "--pretty=format:", "--name-only", "HEAD"])
    files = []
 
+   # see also: notes in pre-commit
+   # see also-er: https://stackoverflow.com/questions/3284292/can-a-git-hook-automatically-add-files-to-the-commit
+
+   dotcommit = os.path.join(root, ".commit")
+
+   if os.path.exists(dotcommit):
+
+      logging.info("%s exists, so I am going to look for files that have been modified" % dotcommit)
+
+      to_add = []
+
+      fh = open(dotcommit)
+
+      for rel_path in fh.readlines():
+
+         rel_path = rel_path.strip()
+         abs_path = os.path.join(root, rel_path)
+
+         if not os.path.exists(abs_path):
+            continue
+
+         to_add.append(rel_path)
+      
+      fh.close()
+      os.unlink(dotcommit)
+
+      if len(to_add):
+
+         cmd = ["git", "add"]
+         cmd.extend(to_add)
+         
+         out = subprocess.check_output(cmd)
+
+         logging.info(" ".join(cmd))
+         logging.debug(out)
+
+         # note the --no-verify flag  - this is very very very important
+         # without it you will send git in to an endless spiral where it
+         # invokes the pre-commit hook... which you know maybe is a good
+         # interview question (good albeit cruel) but isn't very useful
+         # for actually getting any work done... (20151112/thisisaaronland)
+
+         cmd = ["git", "commit", "--amend", "-C", "HEAD", "--no-verify"]
+         out = subprocess.check_output(cmd)
+
+         logging.info(" ".join(cmd))
+         logging.info(out)
+
+   # okay now we're going to see if there are any files we need to modify
+   # post-commit... because, you know... post-commit
+
    for fname in out.splitlines():
 
       # account for alt files here... how?
@@ -41,17 +96,16 @@ if __name__ == '__main__':
    if len(files) == 0:
       sys.exit(0)
 
-   out = subprocess.check_output(["git", "log", "-1", "HEAD"])
-   out = out.splitlines()
-   
-   ignore, hash = out[0].split(" ")
-   logging.info("processing commit hash %s" % hash)
+   # see also:
+   # http://blogs.aws.amazon.com/security/post/Tx3D6U6WSFGOK2H/A-New-and-Standardized-Way-to-Manage-Credentials-in-the-AWS-SDKs
+
+   creds = os.path.join(os.environ.get("HOME"), ".aws", "credentials")
+
+   if not os.path.exists(creds) and not os.environ.get("AWS_CREDENTIALS_FILE", None):
+      logging.info("can't find default AWS credentials file and 
 
    # sudo make me configurable?
    bucket = "whosonfirst.mapzen.com"
-
-   # also check to see if the credentials file is even present and just
-   # hang up and return exit 0 if not (20151111/thisisaaronland)
 
    s3 = mapzen.whosonfirst.aws.s3(bucket=bucket)
 
