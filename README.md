@@ -93,7 +93,7 @@ INFO:root:[master 8feb927] update more wof:name per issue #164
 
 ## Caveats
 
-The pre- and post- hooks are both written Python so that we can take advantage of a lot of pre-existing library code for wrangling Who's on First documents. These files perform some gynmnastics to account for the reality that Git is as weird as it is powerful. If you find yourself adding functionalities to any of the files in this repository please ensure that WOF-speific functionality is made part of a new or existing library that can be _invoked_ from the Git hooks but not defined in them. The Git hooks should be the place where all the Git related magic and voodoo is kept isolated.
+The pre- and post- hooks are both written Python so that we can take advantage of a lot of pre-existing library code for wrangling Who's on First documents. These files perform some gynmnastics to account for the reality that Git is as weird as it is powerful. If you find yourself adding functionality to any of the files in this repository please ensure that WOF-speific functionality is made part of a new or existing library that can be _invoked_ from the Git hooks but not defined in them. The Git hooks should be the place where all the Git related magic and voodoo is kept isolated.
 
 ## Dependencies
 
