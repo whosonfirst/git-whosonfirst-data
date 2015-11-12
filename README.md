@@ -24,7 +24,7 @@ Validate and format documents before commiting them, updating the relevant [plac
 
 ### post-commit
 
-This is the part that will append the updated files (exported WOF documents and meta files) to the current commit.
+This is the part that will append the updated files (exported WOF documents and meta files) to the current commit. [Because Git](https://stackoverflow.com/questions/3284292/can-a-git-hook-automatically-add-files-to-the-commit) and because the problem started growing yak-hair like a Wookie. _If someone knows a better way to do this please let us know._
 
 Additionally this will attempt to upload the updated WOF documents to a Mapzen / Who's On First (AWS) S3 bucket. Or rather it will attempt to upload them if the hook thinks it knows [where to find your AWS credentials](http://blogs.aws.amazon.com/security/post/Tx3D6U6WSFGOK2H/A-New-and-Standardized-Way-to-Manage-Credentials-in-the-AWS-SDKs). Or rather it will attempt to upload them _and fail_ unless you have suitable credentials for the bucket. Which is hard-coded to be _out_ bucket. Which is not ideal.
 
