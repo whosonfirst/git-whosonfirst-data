@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # -*-python-*-
 
+# Please to be reading this before you start making changes here:
+# https://github.com/whosonfirst/git-whosonfirst-data#caveats
+
 import os
 import sys
 import logging
@@ -102,7 +105,7 @@ if __name__ == '__main__':
    creds = os.path.join(os.environ.get("HOME"), ".aws", "credentials")
 
    if not os.path.exists(creds) and not os.environ.get("AWS_CREDENTIALS_FILE", None):
-      logging.info("can't find default AWS credentials file and 
+      logging.info("can't find default AWS credentials file and no environment variable set")
 
    # sudo make me configurable?
    bucket = "whosonfirst.mapzen.com"

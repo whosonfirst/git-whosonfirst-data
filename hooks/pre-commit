@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # -*-python-*-
 
+# Please to be reading this before you start making changes here:
+# https://github.com/whosonfirst/git-whosonfirst-data#caveats
+
 import os
 import sys
 import logging
