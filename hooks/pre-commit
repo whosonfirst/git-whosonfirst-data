@@ -68,7 +68,7 @@ if __name__ == '__main__':
 
    for rel_path in files:
 
-      path = os.path.join(root, rel_path)
+      abs_path = os.path.join(root, rel_path)
       logging.info("validating %s" % abs_path)
 
       rpt = vld.validate_file(path)
