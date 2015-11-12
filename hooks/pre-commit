@@ -59,6 +59,15 @@ if __name__ == '__main__':
    if len(files) == 0:
       sys.exit(0)
 
+   # who am I? this is relevant if we need to amend the commit
+   # below
+
+   out = subprocess.check_output(["git", "log", "-1", "HEAD"])
+   out = out.splitlines()
+   
+   ignore, hash = out[0].split(" ")
+   logging.info("processing commit hash %s" % hash)
+
    vld = mapzen.whosonfirst.validator.validator()
 
    exporter = mapzen.whosonfirst.export.flatfile(data)
@@ -147,7 +156,10 @@ if __name__ == '__main__':
    # of git pre-commiting itself over and over and over and over and well
    # you get the point (20151112/thisisaaronland)
 
-   cmd = ["git", "commit", "--amend", "-m 'meta meta meta'", "--no-verify"]
+   # Note that hash is defined up above after we've ensured that there are
+   # some files we care about pre-commit-ing
+
+   cmd = ["git", "commit", "--amend", "-C", hash, "--no-verify"]
    cmd.extend(recommit)
 
    logging.info(" ".join(cmd))

@@ -2,6 +2,10 @@
 
 Git related utilities for Who's On First Data
 
+## Important
+
+This is still very much a work in progress. Depending on when you read these words the code included here might be wonky or even completely broken. Good times.
+
 ## Git hooks
 
 ### pre-commit
