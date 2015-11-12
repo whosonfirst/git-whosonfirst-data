@@ -63,11 +63,13 @@ if __name__ == '__main__':
 
    exporter = mapzen.whosonfirst.export.flatfile(data)
    updated = []
-      
-   for f in files:
 
-      path = os.path.join(root, f)
-      logging.info("validating %s" % path)
+   recommit = []
+
+   for rel_path in files:
+
+      path = os.path.join(root, rel_path)
+      logging.info("validating %s" % abs_path)
 
       rpt = vld.validate_file(path)
 
@@ -86,13 +88,70 @@ if __name__ == '__main__':
 
          sys.exit(1)
 
-      logging.info("formatting and exportifying %s" % path)
+      logging.info("formatting and exportifying %s" % abs_path)
 
-      feature = mapzen.whosonfirst.utils.load_file(path)
+      # actually export the file - this will do formatting, ensure various properties
+      # are set and assign the lastmodified time
+
+      feature = mapzen.whosonfirst.utils.load_file(abs_path)
       exporter.export_feature(feature)
 
-      updated.append(path)
+      # append the absolute path to a list of things to reference when rebuilding the
+      # meta files; append the relative path to a list of things to reference when
+      # updating the commit so that changes to the individual records and meta files
+      # are included; this is some serious git-magic rain-dancing happenind here so
+      # please to ensure that it never escapes this file (20151112/thisisaaronland)
 
-   mapzen.whosonfirst.utils.update_placetype_metafiles(meta, updated)
+      updated.append(abs_path)
+      recommit.append(rel_path)
 
+   # this is the part where we update / append the commit 
+   # note: this is not working or rather appears to be working but spewing errors like this:
+   # fatal: cannot lock ref 'HEAD': ref refs/heads/master is at d5481aa574bd322da0408473449c058e9e3210aa but expected 450206eeca8df3ec594f4e7b2a43f70dc7356842
+
+   # see also:
+   # https://stackoverflow.com/questions/3284292/can-a-git-hook-automatically-add-files-to-the-commit
+   
+   _modified, _created = mapzen.whosonfirst.utils.update_placetype_metafiles(meta, updated)
+
+   modified = []
+   created = []
+
+   # these are the meta files (including the -latest.csv pointers) that need to be made relative
+   # in order to dance with the git commit
+
+   for path in _modified:
+      path = path.replace(root + "/", "")
+      modified.append(path)
+
+   for path in _created:
+      path = path.replace(root + "/", "")
+      created.append(path)
+
+   recommit.extend(modified)
+   recommit.extend(created)
+
+   logging.info("files modified during pre-commit %s" % ";".join(recommit))
+
+   if len(created):
+      cmd = ["git", "add"]
+      cmd.extend(created)
+
+      logging.info(" ".join(cmd))
+      out = subprocess.check_output(cmd)
+
+      logging.info(out)
+
+   # Hey look - see the '--no-verify' flag? That is the important bit that
+   # prevents this whole process from spiraling in to a neverending spiral
+   # of git pre-commiting itself over and over and over and over and well
+   # you get the point (20151112/thisisaaronland)
+
+   cmd = ["git", "commit", "-m 'meta meta meta'", "--no-verify"]
+   cmd.extend(recommit)
+
+   logging.info(" ".join(cmd))
+   out = subprocess.check_output(cmd)
+
+   logging.info(out)
    sys.exit(0)
