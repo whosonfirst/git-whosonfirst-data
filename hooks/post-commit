@@ -48,15 +48,12 @@ if __name__ == '__main__':
    logging.info("processing commit hash %s" % hash)
 
    # sudo make me configurable?
-   # bucket = "whosonfirst.mapzen.com"
-
-   # this does not support the boto .aws/credentials stuff or rather it
-   # doesn't even get there and freaks out and dies before it can even
-   # try - this should be fixed (20151111/thisisaaronland)
-   # s3 = mapzen.whosonfirst.aws.s3(bucket)
+   bucket = "whosonfirst.mapzen.com"
 
    # also check to see if the credentials file is even present and just
    # hang up and return exit 0 if not (20151111/thisisaaronland)
+
+   s3 = mapzen.whosonfirst.aws.s3(bucket=bucket)
 
    # further it's not clear that we want to do this in python or at least
    # as a synchronous and blocking operation since we know that we'll end
@@ -78,10 +75,8 @@ if __name__ == '__main__':
    for f in files:
 
       path = os.path.join(root, f)
-      logging.info("copy %s to S3... NOT YET, BECAUSE COMPUTERS" % path)
+      logging.info("copy %s to S3" % path)
 
-      # this does not support prefixes yet - that is a
-      # problem (20151111/thisisaaronland)
-      # s3.store_file(path)
+      s3.store_file(path, prefix="data")
 
    sys.exit(0)
