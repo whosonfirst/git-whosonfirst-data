@@ -71,11 +71,11 @@ if __name__ == '__main__':
       abs_path = os.path.join(root, rel_path)
       logging.info("validating %s" % abs_path)
 
-      rpt = vld.validate_file(path)
+      rpt = vld.validate_file(abs_path)
 
       if not rpt.ok():
 
-         logging.error("%s FAILED validation test" % path)
+         logging.error("%s FAILED validation test" % abs_path)
 
          # sudo make the following less bad...
          # (20151111/thisisaaronland)
@@ -147,7 +147,7 @@ if __name__ == '__main__':
    # of git pre-commiting itself over and over and over and over and well
    # you get the point (20151112/thisisaaronland)
 
-   cmd = ["git", "commit", "-m 'meta meta meta'", "--no-verify"]
+   cmd = ["git", "commit", "--amend", "-m 'meta meta meta'", "--no-verify"]
    cmd.extend(recommit)
 
    logging.info(" ".join(cmd))
