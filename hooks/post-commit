@@ -7,6 +7,8 @@ import logging
 
 import subprocess
 
+import mapzen.whosonfirst.aws
+
 logging.basicConfig(level=logging.INFO)
 
 if __name__ == '__main__':
@@ -25,7 +27,7 @@ if __name__ == '__main__':
    data = os.path.join(root, "data")
    meta = os.path.join(root, "meta")
 
-   out = subprocess.check_output(["git", "show", "--pretty=\"format:\"", "--name-only", "HEAD"])
+   out = subprocess.check_output(["git", "show", "--pretty=format:", "--name-only", "HEAD"])
    files = []
 
    for fname in out.splitlines():
@@ -39,7 +41,47 @@ if __name__ == '__main__':
    if len(files) == 0:
       sys.exit(0)
 
+   out = subprocess.check_output(["git", "log", "-1", "HEAD"])
+   out = out.splitlines()
+   
+   ignore, hash = out[0].split(" ")
+   logging.info("processing commit hash %s" % hash)
+
+   # sudo make me configurable?
+   # bucket = "whosonfirst.mapzen.com"
+
+   # this does not support the boto .aws/credentials stuff or rather it
+   # doesn't even get there and freaks out and dies before it can even
+   # try - this should be fixed (20151111/thisisaaronland)
+   # s3 = mapzen.whosonfirst.aws.s3(bucket)
+
+   # also check to see if the credentials file is even present and just
+   # hang up and return exit 0 if not (20151111/thisisaaronland)
+
+   # further it's not clear that we want to do this in python or at least
+   # as a synchronous and blocking operation since we know that we'll end
+   # up with commits spanning a gazillion files - I want to get basic dumb
+   # boto/s3 uploads working inline but this should probably invoke something
+   # a modified version wof-sync (in go-whosonfirst-s3) that reads a list of
+   # files of STDIN or a dump file as a background process and sends a note to
+   # slack or whatever when it's complete - note to self: that means passing
+   # along the actual commit hash above for reference (20151111/thisisaaronland)
+
+   # related:
+   # https://github.com/paulhammond/slackcat
+   # https://github.com/whosonfirst/go-whosonfirst-s3/issues/7
+
+   # related-er:
+   # https://github.com/whosonfirst/py-mapzen-whosonfirst-publish
+   # https://github.com/whosonfirst/whosonfirst-www-boundaryissues/blob/master/UPDATE.md
+
    for f in files:
 
       path = os.path.join(root, f)
-      logging.info("processing %s" % path)
+      logging.info("copy %s to S3... NOT YET, BECAUSE COMPUTERS" % path)
+
+      # this does not support prefixes yet - that is a
+      # problem (20151111/thisisaaronland)
+      # s3.store_file(path)
+
+   sys.exit(0)

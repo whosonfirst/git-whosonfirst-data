@@ -20,11 +20,15 @@ INFO:root:copy /usr/local/data/whosonfirst-data/meta/wof-neighbourhood-20151111.
  3 files changed, 4 insertions(+), 4 deletions(-)
 ```
 
-To install the pre-commit hook you will need to copy (or symlink) the [hooks/pre-commit](hooks/pre-commit) file to the `.git/hooks` folder in your copy of [whosonfirst-data](https://github.com/whosonfirst/whosonfirst-data). For example:
+To install the pre-commit hook you will need to copy the [hooks/pre-commit](hooks/pre-commit) file to the `.git/hooks` folder in your copy of [whosonfirst-data](https://github.com/whosonfirst/whosonfirst-data). You can also symlink it so that updates and changes to the source will take effect immediately. For example:
 
 ```
 $> ln -s /usr/local/mapzen/git-whosonfirst-data/hooks/pre-commit /usr/local/mapzen/whosonfirst-data/.git/hooks/pre-commit
 ```
+
+### post-commit
+
+This is still a work in progress and you're probably best to not install it yet. See notes [in the code](hooks/post-commit) if you're curious.
 
 ## Dependencies
 
