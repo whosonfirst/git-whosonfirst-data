@@ -6,6 +6,17 @@ Git related utilities for Who's On First Data
 
 This is still very much a work in progress. Depending on when you read these words the code included here might be wonky or even completely broken. It _should_ work as of this writing but I bet you could find a way to make things get weird if you wanted to. Good times.
 
+## Dependencies
+
+Currently this repository lacks a handy script for installing dependencies so you will need to ensure that recent versions of the following are installed:
+
+* https://github.com/whosonfirst/py-mapzen-whosonfirst-utils
+* https://github.com/whosonfirst/py-mapzen-whosonfirst-export
+* https://github.com/whosonfirst/py-mapzen-whosonfirst-validator
+* https://github.com/whosonfirst/py-mapzen-whosonfirst-aws
+
+Having to do this is _not_ a feature. We'll figure something out eventually.
+
 ## Install
 
 To install the pre-commit and post-commit hooks you will need to copy both files to the `.git/hooks` folder in your copy of [whosonfirst-data](https://github.com/whosonfirst/whosonfirst-data). You can also symlink them so that updates and changes to the source will take effect immediately. For example:
@@ -24,9 +35,11 @@ Validate and format documents before commiting them, updating the relevant [plac
 
 ### post-commit
 
-This is the part that will append the updated files (exported WOF documents and meta files) to the current commit. [Because Git](https://stackoverflow.com/questions/3284292/can-a-git-hook-automatically-add-files-to-the-commit) and because the problem started growing yak-hair like a Wookie. _If someone knows a better way to do this please let us know._
+This is the part that will append the updated files (exported WOF documents and meta files) to the current commit. [Because Git](https://stackoverflow.com/questions/3284292/can-a-git-hook-automatically-add-files-to-the-commit) and because the problem started growing yak-hair like a Wookie. _If someone knows a better way to do this please let us know._ Additionally this will attempt to upload the updated WOF documents to a Mapzen / Who's On First (AWS) S3 bucket.
 
-Additionally this will attempt to upload the updated WOF documents to a Mapzen / Who's On First (AWS) S3 bucket. Or rather it will attempt to upload them if the hook thinks it knows [where to find your AWS credentials](http://blogs.aws.amazon.com/security/post/Tx3D6U6WSFGOK2H/A-New-and-Standardized-Way-to-Manage-Credentials-in-the-AWS-SDKs). Or rather it will attempt to upload them _and fail_ unless you have suitable credentials for the bucket. Which is hard-coded to be _out_ bucket. Which is not ideal.
+#### it's complicated...
+
+Or rather it will attempt to upload them if the hook thinks it knows [where to find your AWS credentials](http://blogs.aws.amazon.com/security/post/Tx3D6U6WSFGOK2H/A-New-and-Standardized-Way-to-Manage-Credentials-in-the-AWS-SDKs). Or rather it will attempt to upload them _and fail_ unless you have suitable credentials for the bucket. Which is hard-coded to be _out_ bucket. Which is not ideal.
 
 Then again neither is doing transfers as a synchronous and blocking operation during the post-commit phase. All of this still needs to be sorted out (there are lots of [notes and comments in the source code](https://github.com/whosonfirst/git-whosonfirst-data/blob/master/hooks/post-commit) if you're curious) so expect this stuff to change in the short-to-medium term.
 
@@ -94,17 +107,6 @@ INFO:root:[master 8feb927] update more wof:name per issue #164
 ## Caveats
 
 The pre- and post- hooks are both written Python so that we can take advantage of a lot of pre-existing library code for wrangling Who's on First documents. These files perform some gynmnastics to account for the reality that Git is as weird as it is powerful. If you find yourself adding functionality to any of the files in this repository please ensure that WOF-speific functionality is made part of a new or existing library that can be _invoked_ from the Git hooks but not defined in them. The Git hooks should be the place where all the Git related magic and voodoo is kept isolated.
-
-## Dependencies
-
-Currently this repository lacks a handy script for installing dependencies so you will need to ensure that recent versions of the following are installed:
-
-* https://github.com/whosonfirst/py-mapzen-whosonfirst-utils
-* https://github.com/whosonfirst/py-mapzen-whosonfirst-export
-* https://github.com/whosonfirst/py-mapzen-whosonfirst-validator
-* https://github.com/whosonfirst/py-mapzen-whosonfirst-aws
-
-Having to do this is _not_ a feature. We'll figure something out eventually.
 
 ## See also
 
