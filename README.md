@@ -56,7 +56,7 @@ $> git config alias.xpush '!git push $1 $2 && /usr/local/mapzen/git-whosonfirst-
 You should adjust the name of `xpush` alias and the path the `post-push` script as necessary to reflect the reality of your setup. When you're ready to commit changes you would type:
 
 ```
-git xpush origin <branch>
+$> git xpush origin <branch>
 ```
 
 Which will do the usual `git push origin <branch>` dance and _then_ invoke the `post-push` hook. As of this writing the hook is not smart enough to check for, or limit itself, to a specific branch being pushed to.
@@ -85,7 +85,7 @@ This could probably be sped up using multiple processes but that work is being d
 #### Update a file
 
 ```
-/usr/local/bin/wof-exportify -s /usr/local/mapzen/whosonfirst-data/data/ -i 101756549
+$> /usr/local/bin/wof-exportify -s /usr/local/mapzen/whosonfirst-data/data/ -i 101756549
 INFO:root:writing /usr/local/mapzen/whosonfirst-data/data/101/756/549/101756549.geojson
 ```
 
