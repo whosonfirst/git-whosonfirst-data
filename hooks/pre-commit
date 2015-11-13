@@ -115,8 +115,15 @@ if __name__ == '__main__':
 
    # these are the meta files (including the -latest.csv pointers) that need to be made relative
    # in order to dance with the git commit
-   
-   _modified, _created = mapzen.whosonfirst.utils.update_placetype_metafiles(meta, updated)
+
+   # ensure relative paths to files in the meta files
+
+   meta_kwargs = {
+      'paths': 'relative',
+      'prefix': root,
+   }
+
+   _modified, _created = mapzen.whosonfirst.utils.update_placetype_metafiles(meta, updated, **meta_kwargs)
 
    modified = []
    created = []
