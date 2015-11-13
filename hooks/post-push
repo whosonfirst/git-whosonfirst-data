@@ -12,8 +12,9 @@
 import os
 import sys
 import logging
-
 import subprocess
+
+import mapzen.whosonfirst.aws
 
 logging.basicConfig(level=logging.INFO)
    
@@ -36,14 +37,16 @@ if __name__ == '__main__':
 
    logging.info("invoking git-whosonfirst-mapzen post-push hooks for %s" % hash)
 
-   # who's on first... har har har... sad trombone
-   
-   whoami = sys.argv[0]
-   whoami = os.path.abspath(whoami)
+   # who's on first... har har har... sad trombone - remember that unlike
+   # the other git hooks which are meant to be copied over to the wof-data
+   # .git/hooks repository this one is stored somewhere and meant to be
+   # invoked *from* the wof-data repository (20151113/thisisaaronland)
 
-   hooks = os.path.dirname(whoami)
-   dotgit = os.path.dirname(hooks)
-   root = os.path.dirname(dotgit)
+   root = os.getcwd()
+
+   if os.path.basename(root) != "whosonfirst-data":
+      logging.error("I don't think I am being invoked in the whosonfirst-data repository... RUNNING AWAY SCARED")
+      sys.exit(1)
 
    data = os.path.join(root, "data")
    meta = os.path.join(root, "meta")

@@ -82,52 +82,55 @@ This could probably be sped up using multiple processes but that work is being d
 
 ### Example
 
-```
-$> git commit -m "update more wof:name per issue #164" .
-INFO:root:invoking git-whosonfirst-mapzen pre-commit hooks for 31bfc6ac70811258faa2fa8fbbfd7f77910c22f3
-INFO:root:processing commit hash 31bfc6ac70811258faa2fa8fbbfd7f77910c22f3
-INFO:root:validating /usr/local/data/whosonfirst-data/data/856/819/91/85681991.geojson
-INFO:root:formatting and exportifying /usr/local/data/whosonfirst-data/data/856/819/91/85681991.geojson
-INFO:root:writing /usr/local/data/whosonfirst-data/data/856/819/91/85681991.geojson
-INFO:root:validating /usr/local/data/whosonfirst-data/data/856/819/99/85681999.geojson
-INFO:root:formatting and exportifying /usr/local/data/whosonfirst-data/data/856/819/99/85681999.geojson
-INFO:root:writing /usr/local/data/whosonfirst-data/data/856/819/99/85681999.geojson
-INFO:root:validating /usr/local/data/whosonfirst-data/data/856/820/11/85682011.geojson
-INFO:root:formatting and exportifying /usr/local/data/whosonfirst-data/data/856/820/11/85682011.geojson
-INFO:root:writing /usr/local/data/whosonfirst-data/data/856/820/11/85682011.geojson
-INFO:root:validating /usr/local/data/whosonfirst-data/data/856/820/15/85682015.geojson
-INFO:root:formatting and exportifying /usr/local/data/whosonfirst-data/data/856/820/15/85682015.geojson
-INFO:root:writing /usr/local/data/whosonfirst-data/data/856/820/15/85682015.geojson
-INFO:root:validating /usr/local/data/whosonfirst-data/data/856/820/21/85682021.geojson
-INFO:root:formatting and exportifying /usr/local/data/whosonfirst-data/data/856/820/21/85682021.geojson
-INFO:root:writing /usr/local/data/whosonfirst-data/data/856/820/21/85682021.geojson
-INFO:root:validating /usr/local/data/whosonfirst-data/data/856/820/37/85682037.geojson
-INFO:root:formatting and exportifying /usr/local/data/whosonfirst-data/data/856/820/37/85682037.geojson
-INFO:root:writing /usr/local/data/whosonfirst-data/data/856/820/37/85682037.geojson
-INFO:root:validating /usr/local/data/whosonfirst-data/data/856/820/53/85682053.geojson
-INFO:root:formatting and exportifying /usr/local/data/whosonfirst-data/data/856/820/53/85682053.geojson
-INFO:root:writing /usr/local/data/whosonfirst-data/data/856/820/53/85682053.geojson
-INFO:root:validating /usr/local/data/whosonfirst-data/data/856/821/39/85682139.geojson
-INFO:root:formatting and exportifying /usr/local/data/whosonfirst-data/data/856/821/39/85682139.geojson
-INFO:root:writing /usr/local/data/whosonfirst-data/data/856/821/39/85682139.geojson
-INFO:root:validating /usr/local/data/whosonfirst-data/data/856/821/43/85682143.geojson
-INFO:root:formatting and exportifying /usr/local/data/whosonfirst-data/data/856/821/43/85682143.geojson
-INFO:root:writing /usr/local/data/whosonfirst-data/data/856/821/43/85682143.geojson
-INFO:root:validating /usr/local/data/whosonfirst-data/data/856/821/49/85682149.geojson
-INFO:root:formatting and exportifying /usr/local/data/whosonfirst-data/data/856/821/49/85682149.geojson
-INFO:root:writing /usr/local/data/whosonfirst-data/data/856/821/49/85682149.geojson
-INFO:root:rebuild meta file for placetype region with 10 updates
-INFO:root:copy /usr/local/data/whosonfirst-data/meta/wof-region-20151112.csv to /usr/local/data/whosonfirst-data/meta/wof-region-latest.csv
-INFO:root:invoking git-whosonfirst-mapzen post-commit hooks for 7ce339954f26a9b416b57ff9bbd816cf7dcba3ef
-INFO:root:/usr/local/data/whosonfirst-data/.commit exists, so I am going to look for files that have been modified
-INFO:root:git add data/856/819/91/85681991.geojson data/856/819/99/85681999.geojson data/856/820/11/85682011.geojson data/856/820/15/85682015.geojson data/856/820/21/85682021.geojson data/856/820/37/85682037.geojson data/856/820/53/85682053.geojson data/856/821/39/85682139.geojson data/856/821/43/85682143.geojson data/856/821/49/85682149.geojson meta/wof-region-20151112.csv meta/wof-region-latest.csv
-INFO:root:git commit --amend -C HEAD --no-verify
-INFO:root:[master 8feb927] update more wof:name per issue #164
- Date: Thu Nov 12 22:01:07 2015 +0000
- 12 files changed, 80 insertions(+), 80 deletions(-)
+#### Update a file
 
-[master 7ce3399] update more wof:name per issue #164
- 10 files changed, 60 insertions(+), 60 deletions(-)
+```
+/usr/local/bin/wof-exportify -s /usr/local/mapzen/whosonfirst-data/data/ -i 101756549
+INFO:root:writing /usr/local/mapzen/whosonfirst-data/data/101/756/549/101756549.geojson
+```
+
+_The `wof-exportify` script will simply format a WOF record and update its lastmodified date, which is useful way of triggering a pointless change when necessary._
+
+#### Commit your changes
+
+```
+$> git commit -m "update lastmodified (testing git hooks)" .
+INFO:root:invoking git-whosonfirst-mapzen pre-commit hooks for 9373a8fd7b4eb87baca445b9a7eb1a3a3053412f
+INFO:root:validating /usr/local/data/whosonfirst-data/data/101/756/549/101756549.geojson
+INFO:root:formatting and exportifying /usr/local/data/whosonfirst-data/data/101/756/549/101756549.geojson
+INFO:root:writing /usr/local/data/whosonfirst-data/data/101/756/549/101756549.geojson
+INFO:root:rebuild meta file for placetype locality with one update
+INFO:root:copy /usr/local/data/whosonfirst-data/meta/wof-locality-20151113.csv to /usr/local/data/whosonfirst-data/meta/wof-locality-latest.csv
+INFO:root:writing /usr/local/data/whosonfirst-data/.commit to disk to be processed by the post-commit hook
+INFO:root:invoking git-whosonfirst-mapzen post-commit hooks for 596aceddc0f982f97cd6bdf6f9dec6c31d2b6b02
+INFO:root:/usr/local/data/whosonfirst-data/.commit exists, so I am going to look for files that have been modified
+INFO:root:git add data/101/756/549/101756549.geojson meta/wof-locality-20151113.csv meta/wof-locality-latest.csv
+INFO:root:invoking git-whosonfirst-mapzen post-commit hooks for 413a5d74c82ae6f3f843d785bb7b5668245688cd
+INFO:root:git commit --amend -C HEAD --no-verify
+INFO:root:[master 413a5d7] update lastmodified (testing git hooks)
+ Date: Fri Nov 13 22:28:18 2015 +0000
+ 3 files changed, 3 insertions(+), 3 deletions(-)
+
+INFO:root:nothing else in this commit that we need to apply post-commit hooks to
+[master 596aced] update lastmodified (testing git hooks)
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+```
+
+#### Push the commit
+
+Remember we're actually _xpush_-ing the changes per the discussion about the `post-push` hook and Git aliases.
+
+```
+$> git xpush origin master
+Counting objects: 9, done.
+Delta compression using up to 8 threads.
+Compressing objects: 100% (8/8), done.
+Writing objects: 100% (9/9), 1.79 KiB | 0 bytes/s, done.
+Total 9 (delta 7), reused 0 (delta 0)
+To git@github.com:whosonfirst/whosonfirst-data.git
+   9373a8f..413a5d7  master -> master
+INFO:root:invoking git-whosonfirst-mapzen post-push hooks for 413a5d74c82ae6f3f843d785bb7b5668245688cd
+INFO:root:copy /usr/local/data/whosonfirst-data/data/101/756/549/101756549.geojson to S3
 ```
 
 ## Caveats
