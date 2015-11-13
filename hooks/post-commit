@@ -100,41 +100,7 @@ if __name__ == '__main__':
       logging.info("nothing else in this commit that we need to apply post-commit hooks to")
       sys.exit(0)
 
-   # see also:
-   # http://blogs.aws.amazon.com/security/post/Tx3D6U6WSFGOK2H/A-New-and-Standardized-Way-to-Manage-Credentials-in-the-AWS-SDKs
-
-   creds = os.path.join(os.environ.get("HOME"), ".aws", "credentials")
-
-   if not os.path.exists(creds) and not os.environ.get("AWS_CREDENTIALS_FILE", None):
-      logging.info("can't find default AWS credentials file and no environment variable set")
-
-   # sudo make me configurable?
-   bucket = "whosonfirst.mapzen.com"
-
-   s3 = mapzen.whosonfirst.aws.s3(bucket=bucket)
-
-   # further it's not clear that we want to do this in python or at least
-   # as a synchronous and blocking operation since we know that we'll end
-   # up with commits spanning a gazillion files - I want to get basic dumb
-   # boto/s3 uploads working inline but this should probably invoke something
-   # a modified version wof-sync (in go-whosonfirst-s3) that reads a list of
-   # files of STDIN or a dump file as a background process and sends a note to
-   # slack or whatever when it's complete - note to self: that means passing
-   # along the actual commit hash above for reference (20151111/thisisaaronland)
-
-   # related:
-   # https://github.com/paulhammond/slackcat
-   # https://github.com/whosonfirst/go-whosonfirst-s3/issues/7
-
-   # related-er:
-   # https://github.com/whosonfirst/py-mapzen-whosonfirst-publish
-   # https://github.com/whosonfirst/whosonfirst-www-boundaryissues/blob/master/UPDATE.md
-
-   for f in files:
-
-      path = os.path.join(root, f)
-      logging.info("copy %s to S3" % path)
-
-      s3.store_file(path, prefix="data")
+   # not a bug - we just haven't defined anything beyond this stage
+   # see post-push for hooks to push to S3 etc (20151113/thisisaaronland)
 
    sys.exit(0)

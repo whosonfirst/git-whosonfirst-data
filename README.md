@@ -35,17 +35,37 @@ Validate and format documents before commiting them, updating the relevant [plac
 
 ### post-commit
 
-This is the part that will append the updated files (exported WOF documents and meta files) to the current commit. [Because Git](https://stackoverflow.com/questions/3284292/can-a-git-hook-automatically-add-files-to-the-commit) and because the problem started growing yak-hair like a Wookie. _If someone knows a better way to do this please let us know._ Additionally this will attempt to upload the updated WOF documents to a Mapzen / Who's On First (AWS) S3 bucket.
-
-#### it's complicated...
-
-Or rather it will attempt to upload them if the hook thinks it knows [where to find your AWS credentials](http://blogs.aws.amazon.com/security/post/Tx3D6U6WSFGOK2H/A-New-and-Standardized-Way-to-Manage-Credentials-in-the-AWS-SDKs). Or rather it will attempt to upload them _and fail_ unless you have suitable credentials for the bucket. Which is hard-coded to be _out_ bucket. Which is not ideal.
-
-Then again neither is doing transfers as a synchronous and blocking operation during the post-commit phase. All of this still needs to be sorted out (there are lots of [notes and comments in the source code](https://github.com/whosonfirst/git-whosonfirst-data/blob/master/hooks/post-commit) if you're curious) so expect this stuff to change in the short-to-medium term.
+This is the part that will append the updated files (exported WOF documents and meta files) to the current commit. [Because Git](https://stackoverflow.com/questions/3284292/can-a-git-hook-automatically-add-files-to-the-commit) and because the problem started growing yak-hair like a Wookie. _If someone knows a better way to do this please let us know._
 
 ### pre-push
 
 We don't define any specific `pre-push` hooks at this point because [git-lfs](https://github.com/whosonfirst/whosonfirst-data/#git-and-large-files) already installs one and I haven't decided how best we should play with it.
+
+### post-push
+
+This is where we attempt to upload the updated WOF documents to a Mapzen / Who's On First (AWS) S3 bucket.
+
+#### it's complicated
+
+Git doesn't actually support _post_ push hooks so you will need to install this as a Git (push) alias and invoke the alias explicitly when you push to a branch. To install the alias you would do the following _from_ your copy of the [whosonfirst-data]() repository.
+
+```
+$> git config alias.xpush '!git push $1 $2 && /usr/local/mapzen/git-whosonfirst-data/hooks/post-push'
+```
+
+You should adjust the name of `xpush` alias and the path the `post-push` script as necessary to reflect the reality of your setup. When you're ready to commit changes you would type:
+
+```
+git xpush origin <branch>
+```
+
+Which will do the usual `git push origin <branch>` dance and _then_ invoke the `post-push` hook. As of this writing the hook is not smart enough to check for, or limit itself, to a specific branch being pushed to.
+
+#### it's actually even more complicated...
+
+There is the post-push hook will _attempt_ to upload modified files if the hook thinks it knows [where to find your AWS credentials](http://blogs.aws.amazon.com/security/post/Tx3D6U6WSFGOK2H/A-New-and-Standardized-Way-to-Manage-Credentials-in-the-AWS-SDKs). Or rather it will attempt to upload them _and fail_ unless you have suitable credentials for the bucket. Which is hard-coded to be _out_ bucket. Which is not ideal.
+
+Then again neither is doing transfers as a synchronous and blocking operation during the post-commit phase. All of this still needs to be sorted out (there are lots of [notes and comments in the source code](https://github.com/whosonfirst/git-whosonfirst-data/blob/master/hooks/post-commit) if you're curious) so expect this stuff to change in the short-to-medium term.
 
 ### Example
 
@@ -88,17 +108,6 @@ INFO:root:copy /usr/local/data/whosonfirst-data/meta/wof-region-20151112.csv to 
 INFO:root:invoking git-whosonfirst-mapzen post-commit hooks for 7ce339954f26a9b416b57ff9bbd816cf7dcba3ef
 INFO:root:/usr/local/data/whosonfirst-data/.commit exists, so I am going to look for files that have been modified
 INFO:root:git add data/856/819/91/85681991.geojson data/856/819/99/85681999.geojson data/856/820/11/85682011.geojson data/856/820/15/85682015.geojson data/856/820/21/85682021.geojson data/856/820/37/85682037.geojson data/856/820/53/85682053.geojson data/856/821/39/85682139.geojson data/856/821/43/85682143.geojson data/856/821/49/85682149.geojson meta/wof-region-20151112.csv meta/wof-region-latest.csv
-INFO:root:invoking git-whosonfirst-mapzen post-commit hooks for 8feb92712c7c65c6b694543ca40921d530d6b9e3
-INFO:root:copy /usr/local/data/whosonfirst-data/data/856/819/91/85681991.geojson to S3
-INFO:root:copy /usr/local/data/whosonfirst-data/data/856/819/99/85681999.geojson to S3
-INFO:root:copy /usr/local/data/whosonfirst-data/data/856/820/11/85682011.geojson to S3
-INFO:root:copy /usr/local/data/whosonfirst-data/data/856/820/15/85682015.geojson to S3
-INFO:root:copy /usr/local/data/whosonfirst-data/data/856/820/21/85682021.geojson to S3
-INFO:root:copy /usr/local/data/whosonfirst-data/data/856/820/37/85682037.geojson to S3
-INFO:root:copy /usr/local/data/whosonfirst-data/data/856/820/53/85682053.geojson to S3
-INFO:root:copy /usr/local/data/whosonfirst-data/data/856/821/39/85682139.geojson to S3
-INFO:root:copy /usr/local/data/whosonfirst-data/data/856/821/43/85682143.geojson to S3
-INFO:root:copy /usr/local/data/whosonfirst-data/data/856/821/49/85682149.geojson to S3
 INFO:root:git commit --amend -C HEAD --no-verify
 INFO:root:[master 8feb927] update more wof:name per issue #164
  Date: Thu Nov 12 22:01:07 2015 +0000
@@ -110,7 +119,7 @@ INFO:root:[master 8feb927] update more wof:name per issue #164
 
 ## Caveats
 
-The pre- and post- hooks are both written in Python so that we can take advantage of [the existing library code for wrangling Who's on First documents](https://github.com/whosonfirst?utf8=%E2%9C%93&query=py-). In the meantime the `*-hook` files in this repository perform some gynmnastics to account for the reality that Git is as weird as it is powerful.
+All the hooks in this repository are written in Python so that we can take advantage of [the existing library code for wrangling Who's on First documents](https://github.com/whosonfirst?utf8=%E2%9C%93&query=py-). In the meantime the `*-hook` files in this repository perform some gynmnastics to account for the reality that Git is as weird as it is powerful.
 
 If you find yourself adding functionality to any of the files in this repository please ensure that WOF-speific functionality is made part of a new or existing library that can be _invoked_ from the Git hooks but not defined in them.
 
@@ -119,4 +128,4 @@ The Git hooks should be the place where all the Git related magic and voodoo is 
 ## See also
 
 * https://github.com/whosonfirst/whosonfirst-data
-* https://stackoverflow.com/questions/1797074/local-executing-hook-after-a-git-push
+* https://stackoverflow.com/questions/1797074/local-executing-hook-after-a-git-push#3466589
