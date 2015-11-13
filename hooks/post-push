@@ -16,8 +16,18 @@ import logging
 import subprocess
 
 logging.basicConfig(level=logging.INFO)
-
+   
 if __name__ == '__main__':
+
+   import optparse
+   opt_parser = optparse.OptionParser()
+
+   opt_parser.add_option('--s3', dest='s3', action='store_true', default=False, help='Sync files to S3 (default is False)')
+   opt_parser.add_option('--s3-bucket', dest='s3_bucket', action='store', default=None, help='The name of the S3 bucket to sync files to')
+   opt_parser.add_option('--s3-prefix', dest='s3_prefix', action='store', default=None, help='The name of the prefix to sync files in the S3 bucket to')
+   opt_parser.add_option('--s3-credentials', dest='s3_credentials', action='store', default=None, help='The path to your AWS S3 credentials')
+   
+   options, args = opt_parser.parse_args()
 
    out = subprocess.check_output(["git", "log", "-1", "HEAD"])
    out = out.splitlines()
@@ -53,41 +63,32 @@ if __name__ == '__main__':
       logging.info("nothing else in this commit that we need to apply post-push hooks to")
       sys.exit(0)
 
-   # see also:
-   # http://blogs.aws.amazon.com/security/post/Tx3D6U6WSFGOK2H/A-New-and-Standardized-Way-to-Manage-Credentials-in-the-AWS-SDKs
+   if options.s3:
 
-   creds = os.path.join(os.environ.get("HOME"), ".aws", "credentials")
+      bucket = options.s3_bucket
+      prefix = options.s3_prefix
+      credentials = options.s3_credentials
 
-   if not os.path.exists(creds) and not os.environ.get("AWS_CREDENTIALS_FILE", None):
-      logging.info("can't find default AWS credentials file and no environment variable set")
+      # see also:
+      # http://blogs.aws.amazon.com/security/post/Tx3D6U6WSFGOK2H/A-New-and-Standardized-Way-to-Manage-Credentials-in-the-AWS-SDKs
 
-   # sudo make me configurable?
-   bucket = "whosonfirst.mapzen.com"
+      if credentials:
+         os.environment["AWS_CREDENTIALS_FILE"] = credentials
 
-   s3 = mapzen.whosonfirst.aws.s3(bucket=bucket)
+      creds = os.path.join(os.environ.get("HOME"), ".aws", "credentials")
 
-   # further it's not clear that we want to do this in python or at least
-   # as a synchronous and blocking operation since we know that we'll end
-   # up with commits spanning a gazillion files - I want to get basic dumb
-   # boto/s3 uploads working inline but this should probably invoke something
-   # a modified version wof-sync (in go-whosonfirst-s3) that reads a list of
-   # files of STDIN or a dump file as a background process and sends a note to
-   # slack or whatever when it's complete - note to self: that means passing
-   # along the actual commit hash above for reference (20151111/thisisaaronland)
+      if not os.path.exists(creds) and not os.environ.get("AWS_CREDENTIALS_FILE", None):
+         logging.info("can't find default AWS credentials file and no environment variable set")
 
-   # related:
-   # https://github.com/paulhammond/slackcat
-   # https://github.com/whosonfirst/go-whosonfirst-s3/issues/7
+      else:
 
-   # related-er:
-   # https://github.com/whosonfirst/py-mapzen-whosonfirst-publish
-   # https://github.com/whosonfirst/whosonfirst-www-boundaryissues/blob/master/UPDATE.md
+         s3 = mapzen.whosonfirst.aws.s3(bucket=bucket)
 
-   for f in files:
+         for f in files:
 
-      path = os.path.join(root, f)
-      logging.info("copy %s to S3" % path)
-
-      s3.store_file(path, prefix="data")
+            path = os.path.join(root, f)
+            logging.info("copy %s to S3" % path)
+            
+            s3.store_file(path, prefix=prefix)
 
    sys.exit(0)
