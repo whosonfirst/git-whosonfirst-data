@@ -104,11 +104,15 @@ if __name__ == '__main__':
          cmd.extend(["-credentials", credentials])
 
       # do pipes even work in py-subprocess commands?
+      # https://docs.python.org/2/library/subprocess.html#replacing-shell-pipeline
+
       # https://github.com/whosonfirst/slackcat
 
       if slackcat:
          cmd.extend(["|", slackcat])
 
-      # run cmd as a background process
+      # run cmd as a background process - which is problematic given that we want
+      # to pipe stuff through to slackcat...
+      # https://stackoverflow.com/questions/1196074/starting-a-background-process-in-python
 
    sys.exit(0)
