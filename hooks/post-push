@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 # -*-python-*-
 
-# Please to be reading this before you start making changes here:
+# Please to be reading these before you start making changes here:
+# https://github.com/whosonfirst/git-whosonfirst-data#post-push
 # https://github.com/whosonfirst/git-whosonfirst-data#caveats
+# https://stackoverflow.com/questions/1797074/local-executing-hook-after-a-git-push#3466589
 
 # $ git config alias.xpush '!git push $1 $2 && /usr/local/mapzen/git-whosonfirst-data/hooks/post-push'
-# # (remember the backslash before the ! if your shell requires it)
+# (remember the backslash before the ! if your shell requires it)
 
 import os
 import sys
