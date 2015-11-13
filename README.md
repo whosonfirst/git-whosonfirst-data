@@ -63,7 +63,7 @@ Which will do the usual `git push origin <branch>` dance and _then_ invoke the `
 
 #### it's actually even more complicated...
 
-There is the post-push hook will _attempt_ to upload modified files if the hook thinks it knows [where to find your AWS credentials](http://blogs.aws.amazon.com/security/post/Tx3D6U6WSFGOK2H/A-New-and-Standardized-Way-to-Manage-Credentials-in-the-AWS-SDKs). Or rather it will attempt to upload them _and fail_ unless you have suitable credentials for the bucket. Which is hard-coded to be _out_ bucket. Which is not ideal.
+There is where the post-push hook will _attempt_ to upload modified files if the hook thinks it knows [where to find your AWS credentials](http://blogs.aws.amazon.com/security/post/Tx3D6U6WSFGOK2H/A-New-and-Standardized-Way-to-Manage-Credentials-in-the-AWS-SDKs). Or rather it will attempt to upload them _and fail_ unless you have suitable credentials for the bucket. Which is hard-coded to be _out_ bucket. Which is not ideal.
 
 Then again neither is doing transfers as a synchronous and blocking operation during the post-commit phase. All of this still needs to be sorted out (there are lots of [notes and comments in the source code](https://github.com/whosonfirst/git-whosonfirst-data/blob/master/hooks/post-commit) if you're curious) so expect this stuff to change in the short-to-medium term.
 
