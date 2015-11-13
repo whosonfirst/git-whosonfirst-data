@@ -65,7 +65,7 @@ if __name__ == '__main__':
    # end sudo put me in a function
 
    if len(files) == 0:
-      logging.info("nothing in this commit that we need to apply pre-commit to")
+      logging.info("nothing in this commit that we need to apply pre-commit hooks to")
       sys.exit(0)
 
    vld = mapzen.whosonfirst.validator.validator()

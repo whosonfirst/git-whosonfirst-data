@@ -43,6 +43,10 @@ Or rather it will attempt to upload them if the hook thinks it knows [where to f
 
 Then again neither is doing transfers as a synchronous and blocking operation during the post-commit phase. All of this still needs to be sorted out (there are lots of [notes and comments in the source code](https://github.com/whosonfirst/git-whosonfirst-data/blob/master/hooks/post-commit) if you're curious) so expect this stuff to change in the short-to-medium term.
 
+### pre-push
+
+We don't define any specific `pre-push` hooks at this point because [git-lfs](https://github.com/whosonfirst/whosonfirst-data/#git-and-large-files) already installs one and I haven't decided how best we should play with it.
+
 ### Example
 
 ```
@@ -115,3 +119,4 @@ The Git hooks should be the place where all the Git related magic and voodoo is 
 ## See also
 
 * https://github.com/whosonfirst/whosonfirst-data
+* https://stackoverflow.com/questions/1797074/local-executing-hook-after-a-git-push
