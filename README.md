@@ -47,7 +47,7 @@ This is where we attempt to upload the updated WOF documents to a Mapzen / Who's
 
 #### it's complicated
 
-Git doesn't actually support _post_ push hooks so you will need to install this as a Git (push) alias and invoke the alias explicitly when you push to a branch. To install the alias you would do the following _from_ your copy of the [whosonfirst-data]() repository.
+Git doesn't actually support _post_ push hooks so you will need to install this as part of a Git (push) alias and invoke the alias explicitly when you push to a branch. To install the alias you would do the following _from_ your copy of the [whosonfirst-data]() repository.
 
 ```
 $> git config alias.xpush '!git push $1 $2 && /usr/local/mapzen/git-whosonfirst-data/hooks/post-push'
