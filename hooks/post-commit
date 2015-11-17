@@ -64,8 +64,18 @@ if __name__ == '__main__':
 
       if len(to_add):
 
-         cmd = ["git", "add"]
-         cmd.extend(to_add)
+         cmd = ["git", "add", "meta"]
+
+         # Hey look - see what's happening here? We're only
+         # "adding" stuff in the meta directory since that's
+         # the only place that (as of this writing) new files
+         # should have been created. The alternative is the
+         # scenario descibed in issue #3 where I tried to add
+         # 90K files on the command-line. The results were
+         # entirely predictable in retrospect....
+         # (20151117/thisisaaronland)
+
+         # cmd.extend(to_add)
          
          out = subprocess.check_output(cmd)
 
