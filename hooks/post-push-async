@@ -31,7 +31,8 @@ if __name__ == '__main__':
    opt_parser.add_option('--s3-bucket', dest='s3_bucket', action='store', default=None, help='The name of the S3 bucket to sync files to')
    opt_parser.add_option('--s3-prefix', dest='s3_prefix', action='store', default=None, help='The name of the prefix to sync files in the S3 bucket to')
    opt_parser.add_option('--s3-credentials', dest='s3_credentials', action='store', default=None, help='The path to your AWS S3 credentials')
-   opt_parser.add_option('--slackcat', dest='slackcat', action='store', default=None, help='...')
+   opt_parser.add_option('--slack', dest='slack', action='store_true', default=False, help='...')
+   opt_parser.add_option('--slack-config', dest='slack_config', action='store', default=None, help='...')
    
    options, args = opt_parser.parse_args()
 
@@ -82,7 +83,6 @@ if __name__ == '__main__':
       bucket = options.s3_bucket
       prefix = options.s3_prefix
       credentials = options.s3_credentials
-      slackcat = options.slackcat
       
       # https://github.com/whosonfirst/go-whosonfirst-s3/
       # please make me a fully qualified path, yeah?
@@ -103,13 +103,12 @@ if __name__ == '__main__':
       if credentials:
          cmd.extend(["-credentials", credentials])
 
-      # do pipes even work in py-subprocess commands?
-      # https://docs.python.org/2/library/subprocess.html#replacing-shell-pipeline
-
-      # https://github.com/whosonfirst/slackcat
-
-      if slackcat:
-         cmd.extend(["|", slackcat])
+      if options.slack:
+         cmd.extend([
+            "-slack",
+            "-slack-config",
+            options.slack_config,
+         ])
 
       # run cmd as a background process - which is problematic given that we want
       # to pipe stuff through to slackcat...
