@@ -21,8 +21,8 @@ logging.basicConfig(level=logging.INFO)
    
 if __name__ == '__main__':
 
-   logging.error("WHY ARE YOU TRYING TO USE THIS. IT IS NOT FINISHED")
-   sys.exit(1)
+   # logging.error("WHY ARE YOU TRYING TO USE THIS. IT IS NOT FINISHED")
+   # sys.exit(1)
 
    import optparse
    opt_parser = optparse.OptionParser()
@@ -60,13 +60,36 @@ if __name__ == '__main__':
    out = subprocess.check_output(["git", "show", "--pretty=format:", "--name-only", "HEAD"])
    files = []
 
-   for fname in out.splitlines():
+   for rel_path in out.splitlines():
 
       # account for alt files here... how?
       # also sudo put this logic in a function
 
-      if fname.endswith(".geojson"):
-         files.append(fname)
+      if not rel_path.endswith(".geojson"):
+         continue
+
+      # See this - this bit is important. The go-whosonfirst-s3 SyncFile
+      # function assumes that it is working with absolute paths in order
+      # to know how to prune and append the relevant bits in order to 
+      # figure out who's on first (hahaha...) both locally and remotely
+      # in a world where they two sources may have different parents. The
+      # code (in Go) in question is included below as a reference. Please
+      # do not expect anything to work if you uncomment it...
+      # (20151123/thisisaaronland)
+      
+      """
+
+        dest := source
+        dest = strings.Replace(dest, root, "", -1)
+
+        if sink.Prefix != "" {
+                dest = path.Join(sink.Prefix, dest)
+        }
+
+      """
+
+      abs_path = os.path.abspath(rel_path)
+      files.append(abs_path)
 
    if len(files) == 0:
       logging.info("nothing in this commit that we need to apply post-push-async hooks to")
@@ -84,10 +107,11 @@ if __name__ == '__main__':
       prefix = options.s3_prefix
       credentials = options.s3_credentials
       
+      # Please make me a more flexible fully qualified path,
+      # yeah? See also:
       # https://github.com/whosonfirst/go-whosonfirst-s3/
-      # please make me a fully qualified path, yeah?
 
-      sync = "wof-sync-files"
+      sync = "/usr/local/mapzen/go-whosonfirst-s3/bin/wof-sync-files"
 
       cmd = [
          sync,
@@ -97,6 +121,7 @@ if __name__ == '__main__':
          "-tidy"	# this will unlink tmpfile
       ]
 
+      
       if prefix:
          cmd.extend(["-prefix", prefix])
 
@@ -110,8 +135,32 @@ if __name__ == '__main__':
             options.slack_config,
          ])
 
-      # run cmd as a background process - which is problematic given that we want
-      # to pipe stuff through to slackcat...
-      # https://stackoverflow.com/questions/1196074/starting-a-background-process-in-python
+      str_cmd = " ".join(cmd)
+      logging.info("getting ready to %s" % str_cmd)
+
+      # Run cmd as a background process and exit out of git post-push hoohah
+      # https://stackoverflow.com/questions/89228/calling-an-external-command-in-python#2251026
+      # 
+      # I can not get the following args (to Popen) to work
+      # because... well, I have no idea (20151123/thisisaaronland)
+      
+      # creationflags=subprocess.DETACHED_PROCESS)
+
+      p = subprocess.Popen(cmd)
+      pid = p.pid
+
+      logging.info("launched with PID %s" % (pid))
+
+      # For example:
+      #
+      # INFO:root:getting ready to /usr/local/mapzen/go-whosonfirst-s3/bin/wof-sync-files -bucket whosonfirst.mapzen.com -root /usr/local/data/whosonfirst-data/data \
+      # -file-list /tmp/tmp3zHxja -tidy -slack -slack-config /home/ubuntu/.slackcat.conf
+      # INFO:root:launched with PID 9629
+      # $> ps -p 9629
+      # PID TTY          TIME CMD
+      # 9629 pts/8    00:00:08 wof-sync-files
+      #
+      # And then in 15.623659793s the following gets written to STDOUT (and to slack if so configured):
+      # [wof-sync-files] 23:16:44.105606 [status] Scheduled 733 Completed 733 Success 634 Error 0 Skipped 99 Time 15.623659793s
 
    sys.exit(0)

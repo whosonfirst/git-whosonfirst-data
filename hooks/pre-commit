@@ -96,6 +96,11 @@ if __name__ == '__main__':
          logging.error("validation report is:\n%s" % "".join(fh.readlines()))
          sys.exit(1)
 
+      # disabling this for now since it has a habit of being a lot of unnecessary
+      # cycles - there is much to value in the stuff below but it's not clear how
+      # to know when and when not to trigger it... (20151123/thisisaaronland)
+
+      """
       logging.info("formatting and exportifying %s" % abs_path)
 
       # actually export the file - this will do formatting, ensure various properties
@@ -112,6 +117,7 @@ if __name__ == '__main__':
 
       updated.append(abs_path)
       recommit.append(rel_path)
+      """
 
    # these are the meta files (including the -latest.csv pointers) that need to be made relative
    # in order to dance with the git commit
