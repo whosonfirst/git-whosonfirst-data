@@ -120,7 +120,7 @@ if __name__ == '__main__':
 
    meta_kwargs = {
       'paths': 'relative',
-      'prefix': root,
+      'prefix': data,
    }
 
    _modified, _created = mapzen.whosonfirst.utils.update_placetype_metafiles(meta, updated, **meta_kwargs)
