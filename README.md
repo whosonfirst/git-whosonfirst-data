@@ -15,6 +15,11 @@ Currently this repository lacks a handy script for installing dependencies so yo
 * https://github.com/whosonfirst/py-mapzen-whosonfirst-validator
 * https://github.com/whosonfirst/py-mapzen-whosonfirst-aws
 
+If you are using asynchronous `post-push` hooks (described below) you will also need to install:
+
+* https://github.com/whosonfirst/go-whosonfirst-s3
+* https://github.com/whosonfirst/slackcat
+
 Having to do this is _not_ a feature. We'll figure something out eventually.
 
 ## Install
@@ -45,12 +50,12 @@ We don't define any specific `pre-push` hooks at this point because [git-lfs](ht
 
 This is where we attempt to upload the updated WOF documents to a Mapzen / Who's On First (AWS) S3 bucket.
 
-#### it's complicated
+#### It's complicated
 
 Git doesn't actually support _post_ push hooks so you will need to install this as part of a Git (push) alias and invoke the alias explicitly when you push to a branch. To install the alias you would do the following _from_ your copy of the [whosonfirst-data]() repository.
 
 ```
-$> git config alias.xpush '!git push $1 $2 && /usr/local/mapzen/git-whosonfirst-data/hooks/post-push'
+$> git config alias.xpush '!git push $1 $2 && /usr/local/mapzen/git-whosonfirst-data/hooks/post-push <options>'
 ```
 
 You should adjust the name of `xpush` alias and the path the `post-push` script as necessary to reflect the reality of your setup. When you're ready to commit changes you would type:
@@ -61,7 +66,7 @@ $> git xpush origin <branch>
 
 Which will do the usual `git push origin <branch>` dance and _then_ invoke the `post-push` hook. As of this writing the hook is not smart enough to check for, or limit itself, to a specific branch being pushed to.
 
-#### it's actually more complicated...
+#### It's actually more complicated...
 
 There is where the post-push hook will _attempt_ to upload modified files to S3 if it's been configured correctly, which means passing a few extra arguments to the `post-push` script when you define your Git alias. These are:
 
@@ -78,7 +83,54 @@ For example
 
 The default `post-push` hook implements transfers to S3 using the [py-mapzen-whosonfirst-aws](/usr/local/mapzen/git-whosonfirst-data/hooks/post-push) library and copies files over synchronously. Which is likely to be slow and cumbersome if you're commiting lots and lots of files.
 
-This could probably be sped up using multiple processes but that work is being developed in a `post-push-async` hook that will use the [go-whosonfirst-s3](https://github.com/whosonfirst/go-whosonfirst-s3) package to transfer files in a background process. That work is not finished, as of this writing.
+### post-push-async
+
+#### Did we mention it's complicated?
+
+In order to speed things up and not make you sit there waiting for a whole bunch of files to be transferred to S3 before you can do anymore work there is also `post-push-async` hook. This uses the [go-whosonfirst-s3](https://github.com/whosonfirst/go-whosonfirst-s3) package to transfer files in a background process. Like the `post-push` hook described above you will need to pass a few extra arguments specific to your setup to make it all work. These are:
+
+* --s3
+* --s3-bucket _the name of the S3 bucket you're uploading to_
+* --s3-prefix _the name of any additional sub-directories inside the S3 bucket where files should be written (optional)_
+* --s3-credentials _the path your AWS S3 credentials as described in this [handy blog post](http://blogs.aws.amazon.com/security/post/Tx3D6U6WSFGOK2H/A-New-and-Standardized-Way-to-Manage-Credentials-in-the-AWS-SDKs) (optional)_
+* --slack _send a message to a Slack channel (using the WOF fork of slackcat) once all the transfers are complete (optional)_
+* --slack-config _the path to your slackcat config file (optional)_
+
+For example
+
+```
+/usr/local/mapzen/git-whosonfirst-data/hooks/post-push-async --s3 --s3-bucket whosonfirst.mapzen.com --s3-prefix data --s3-credentials ~/.aws/credentials --slack --slack-config ~/.slackcat.conf 
+```
+
+When the hooks is run you might see something like this printed to STDOUT:
+
+```
+INFO:root:getting ready to /usr/local/mapzen/go-whosonfirst-s3/bin/wof-sync-files -bucket whosonfirst.mapzen.com -root /usr/local/data/whosonfirst-data/data -file-list /tmp/tmp3zHxja -tidy -slack -slack-config /usr/local/mapzen/slackcat/.slackcat.conf
+INFO:root:launched with PID 9629
+```
+
+And then you if you looked for that PID you'd see:
+
+```
+$> ps -p 9629
+PID TTY          TIME CMD
+9629 pts/8    00:00:08 wof-sync-files
+```
+
+And then in (some number of seconds) the following woudl get written to STDOUT (and to slack if so configured):
+
+```
+[wof-sync-files] 23:16:44.105606 [status] Scheduled 733 Completed 733 Success 634 Error 0 Skipped 99 Time 15.623659793s
+```
+
+#### Don't forget
+
+Just like the `post-push` hook/alias you'll need to tell Git about the `post-push-async` hook like this:
+
+```
+$> git config alias.xpush '!git push $1 $2 && /usr/local/mapzen/git-whosonfirst-data/hooks/post-push <options>'
+```
+
 
 ### Example
 

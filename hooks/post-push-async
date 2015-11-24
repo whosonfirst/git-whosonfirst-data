@@ -29,8 +29,8 @@ if __name__ == '__main__':
    opt_parser.add_option('--s3-bucket', dest='s3_bucket', action='store', default=None, help='The name of the S3 bucket to sync files to')
    opt_parser.add_option('--s3-prefix', dest='s3_prefix', action='store', default=None, help='The name of the prefix to sync files in the S3 bucket to')
    opt_parser.add_option('--s3-credentials', dest='s3_credentials', action='store', default=None, help='The path to your AWS S3 credentials')
-   opt_parser.add_option('--slack', dest='slack', action='store_true', default=False, help='...')
-   opt_parser.add_option('--slack-config', dest='slack_config', action='store', default=None, help='...')
+   opt_parser.add_option('--slack', dest='slack', action='store_true', default=False, help='Send a message to a Slack channel (using the WOF fork of slackcat) once all the transfers are complete')
+   opt_parser.add_option('--slack-config', dest='slack_config', action='store', default=None, help='The path to your slackcat config file')
    
    options, args = opt_parser.parse_args()
 
@@ -152,7 +152,7 @@ if __name__ == '__main__':
       # For example:
       #
       # INFO:root:getting ready to /usr/local/mapzen/go-whosonfirst-s3/bin/wof-sync-files -bucket whosonfirst.mapzen.com -root /usr/local/data/whosonfirst-data/data \
-      # -file-list /tmp/tmp3zHxja -tidy -slack -slack-config /home/ubuntu/.slackcat.conf
+      # -file-list /tmp/tmp3zHxja -tidy -slack -slack-config /usr/local/slackcat/.slackcat.conf
       # INFO:root:launched with PID 9629
       # $> ps -p 9629
       # PID TTY          TIME CMD
