@@ -6,7 +6,8 @@
 # https://github.com/whosonfirst/git-whosonfirst-data#caveats
 # https://stackoverflow.com/questions/1797074/local-executing-hook-after-a-git-push#3466589
 
-# $ git config alias.xpush '!git push $1 $2 && /usr/local/mapzen/git-whosonfirst-data/hooks/post-push'
+# $ git config alias.xpush '!git push $1 $2 && /usr/local/mapzen/git-whosonfirst-data/hooks/post-push-async --s3 --s3-bucket whosonfirst.mapzen.com --s3-prefix data --slack --slack-config /usr/local/mapzen/slackcat/slackcat.conf'
+
 # (remember the backslash before the ! if your shell requires it)
 
 import os
@@ -20,9 +21,6 @@ import mapzen.whosonfirst.aws
 logging.basicConfig(level=logging.INFO)
    
 if __name__ == '__main__':
-
-   # logging.error("WHY ARE YOU TRYING TO USE THIS. IT IS NOT FINISHED")
-   # sys.exit(1)
 
    import optparse
    opt_parser = optparse.OptionParser()
