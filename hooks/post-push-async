@@ -105,11 +105,41 @@ if __name__ == '__main__':
       prefix = options.s3_prefix
       credentials = options.s3_credentials
       
-      # Please make me a more flexible fully qualified path,
-      # yeah? See also:
+      # Now we figure out where the wof-sync-files binary is. As in:
       # https://github.com/whosonfirst/go-whosonfirst-s3/
 
-      sync = "/usr/local/mapzen/go-whosonfirst-s3/bin/wof-sync-files"
+      # Specifically this:
+
+      """
+      cd /usr/local/mapzen/go-whosonfirst-s3
+      export GOPATH=`pwd`
+      export GOOS='darwin'
+      export GOARCH='amd64'
+      go build -o /usr/local/mapzen/git-whosonfirst-data/bin/osx/wof-sync-files cmd/wof-sync-files.go 
+      export GOOS='windows'
+      go build -o /usr/local/mapzen/git-whosonfirst-data/bin/windows/wof-sync-files cmd/wof-sync-files.go 
+      export GOOS='linux'
+      go build -o /usr/local/mapzen/git-whosonfirst-data/bin/linux/wof-sync-files cmd/wof-sync-files.go 
+      """
+
+      whoami = os.path.abspath(sys.argv[0])
+      hooks = os.path.dirname(whoami)
+      root = os.path.dirname(hooks)
+      bin = os.path.join(root, 'bin')
+
+      whatami = sys.platform
+
+      if whatami == 'darwin':
+         bin = os.path.join(bin, "osx")
+      elif whatami == 'win32':
+        bin = os.path.join(bin, "windows")
+     elif whatami == 'linux':
+        bin = os.path.join(bin, "linux")        
+     else:
+        logging.error("unknown or unsupported platform: %s" % whatami)
+        sys.exit(1)
+
+      sync = os.path.join(bin, "wof-sync-files")
 
       cmd = [
          sync,
