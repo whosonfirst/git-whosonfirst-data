@@ -132,12 +132,12 @@ if __name__ == '__main__':
       if whatami == 'darwin':
          bin = os.path.join(bin, "osx")
       elif whatami == 'win32':
-        bin = os.path.join(bin, "windows")
-     elif whatami == 'linux':
-        bin = os.path.join(bin, "linux")        
-     else:
-        logging.error("unknown or unsupported platform: %s" % whatami)
-        sys.exit(1)
+         bin = os.path.join(bin, "windows")
+      elif whatami == 'linux':
+         bin = os.path.join(bin, "linux")        
+      else:
+         logging.error("unknown or unsupported platform: %s" % whatami)
+         sys.exit(1)
 
       sync = os.path.join(bin, "wof-sync-files")
 
