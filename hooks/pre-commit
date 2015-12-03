@@ -114,10 +114,10 @@ if __name__ == '__main__':
       # updating the commit so that changes to the individual records and meta files
       # are included; this is some serious git-magic rain-dancing happenind here so
       # please to ensure that it never escapes this file (20151112/thisisaaronland)
+      """
 
       updated.append(abs_path)
       recommit.append(rel_path)
-      """
 
    # these are the meta files (including the -latest.csv pointers) that need to be made relative
    # in order to dance with the git commit
