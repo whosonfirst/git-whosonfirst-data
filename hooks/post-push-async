@@ -208,6 +208,8 @@ if __name__ == '__main__':
       fh.write("\n".join(files))
       fh.close()
 
+      # https://github.com/whosonfirst/py-mapzen-whosonfirst-search
+
       indexer = "/usr/local/bin/wof-es-index-filelist"
 
       cmd = [
@@ -232,9 +234,13 @@ if __name__ == '__main__':
       str_cmd = " ".join(cmd)
       logging.info("getting ready to %s" % str_cmd)
 
-      p = subprocess.Popen(cmd)
-      pid = p.pid
+      if not os.path.exists(indexer):
+         logging.warning("%s does not exist" % indexer)
 
-      logging.info("launched with PID %s" % (pid))
+      else:
+         p = subprocess.Popen(cmd)
+         pid = p.pid
+
+         logging.info("launched with PID %s" % (pid))
 
    sys.exit(0)

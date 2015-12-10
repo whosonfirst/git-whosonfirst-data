@@ -13,6 +13,7 @@ Currently this repository lacks a handy script for installing dependencies so yo
 * https://github.com/whosonfirst/py-mapzen-whosonfirst-utils
 * https://github.com/whosonfirst/py-mapzen-whosonfirst-export
 * https://github.com/whosonfirst/py-mapzen-whosonfirst-validator
+* https://github.com/whosonfirst/py-mapzen-whosonfirst-search
 * https://github.com/whosonfirst/py-mapzen-whosonfirst-aws
 
 If you are using asynchronous `post-push` hooks (described below) you will also need to install:
@@ -89,10 +90,21 @@ The default `post-push` hook implements transfers to S3 using the [py-mapzen-who
 
 In order to speed things up and not make you sit there waiting for a whole bunch of files to be transferred to S3 before you can do anymore work there is also `post-push-async` hook. This uses the [go-whosonfirst-s3](https://github.com/whosonfirst/go-whosonfirst-s3) package to transfer files in a background process. Like the `post-push` hook described above you will need to pass a few extra arguments specific to your setup to make it all work. These are:
 
+##### S3 (uploading)
+
 * --s3
 * --s3-bucket _the name of the S3 bucket you're uploading to_
 * --s3-prefix _the name of any additional sub-directories inside the S3 bucket where files should be written (optional)_
 * --s3-credentials _the path your AWS S3 credentials as described in this [handy blog post](http://blogs.aws.amazon.com/security/post/Tx3D6U6WSFGOK2H/A-New-and-Standardized-Way-to-Manage-Credentials-in-the-AWS-SDKs) (optional)_
+
+##### Elasticsearch (indexing)
+
+* --es
+* --es-host _the host of the Elasticsearch endpoint you want to index WOF documents in (default is localhost)_
+* --es-port _the port of the Elasticsearch endpoint you want to index WOF documents in (default is 9200)_
+
+##### Slack (notifications when things are done)
+
 * --slack _send a message to a Slack channel (using the WOF fork of slackcat) once all the transfers are complete (optional)_
 * --slack-config _the path to your slackcat config file (optional)_
 
