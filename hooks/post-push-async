@@ -16,10 +16,6 @@ import logging
 import subprocess
 import tempfile
 
-import mapzen.whosonfirst.aws
-
-logging.basicConfig(level=logging.INFO)
-   
 if __name__ == '__main__':
 
    import optparse
@@ -36,8 +32,16 @@ if __name__ == '__main__':
 
    opt_parser.add_option('--slack', dest='slack', action='store_true', default=False, help='Send a message to a Slack channel (using the WOF fork of slackcat) once all the transfers are complete')
    opt_parser.add_option('--slack-config', dest='slack_config', action='store', default=None, help='The path to your slackcat config file')
+
+   opt_parser.add_option('-v', '--verbose', dest='verbose', action='store_true', default=False, help='Be chatty (default is false)')
    
    options, args = opt_parser.parse_args()
+
+   if options.verbose:	
+      logging.basicConfig(level=logging.DEBUG)
+   else:
+      logging.basicConfig(level=logging.INFO)
+
 
    out = subprocess.check_output(["git", "log", "-1", "HEAD"])
    out = out.splitlines()
