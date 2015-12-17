@@ -197,6 +197,34 @@ INFO:root:invoking git-whosonfirst-mapzen post-push hooks for 413a5d74c82ae6f3f8
 INFO:root:copy /usr/local/data/whosonfirst-data/data/101/756/549/101756549.geojson to S3
 ```
 
+## Examples
+
+### Here's an example of a commit failing validation
+
+```
+$> git commit -m "update airport codes, names and hierarchy for LIS" .
+INFO:root:invoking git-whosonfirst-mapzen pre-commit hooks for ae168390228fa69fdc8b5f1319f33d505c543685
+INFO:root:validating /usr/local/data/whosonfirst-data/data/102/535/643/102535643.geojson
+ERROR:root:failed to open /usr/local/data/whosonfirst-data/data/102/535/643/102535643.geojson because No JSON object could be decoded
+ERROR:root:/usr/local/data/whosonfirst-data/data/102/535/643/102535643.geojson FAILED validation test
+ERROR:root:validation report is:
+# debug
+
+# info
+
+# warning
+
+# ok
+
+* False
+
+# error
+
+* failed to open /usr/local/data/whosonfirst-data/data/102/535/643/102535643.geojson because No JSON object could be decoded
+```
+
+The problem in this case was an array whose last item had a trailing `,` which is a fatal JSON error. Unfortunately Python's JSON library is not terribly informative about _what_ prevents a file from being decoded so that level of snooping will remain your responsibility.
+
 ## Caveats
 
 All the hooks in this repository are written in Python so that we can take advantage of [the existing library code for wrangling Who's on First documents](https://github.com/whosonfirst?utf8=%E2%9C%93&query=py-). In the meantime the `*-hook` files in this repository perform some gynmnastics to account for the reality that Git is as weird as it is powerful.
