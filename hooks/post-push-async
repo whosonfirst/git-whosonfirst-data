@@ -26,9 +26,9 @@ if __name__ == '__main__':
    opt_parser.add_option('--s3-prefix', dest='s3_prefix', action='store', default=None, help='The name of the prefix to sync files in the S3 bucket to')
    opt_parser.add_option('--s3-credentials', dest='s3_credentials', action='store', default=None, help='The path to your AWS S3 credentials')
 
-   opt_parser.add_option('--es', dest='es', default=False, help='Sync files to Elasticsearch (default is False)')
-   opt_parser.add_option('--es-host', dest='es_host', default='localhost', help='The hostname of the Elasticsearch endpoint (default is localhost)')
-   opt_parser.add_option('--es-port', dest='es_port', default='9200', help='The hostname of the Elasticsearch endpoint (default is 9200)')
+   opt_parser.add_option('--es', dest='es', action='store_true', default=False, help='Sync files to Elasticsearch (default is False)')
+   opt_parser.add_option('--es-host', dest='es_host', action='store', default='localhost', help='The hostname of the Elasticsearch endpoint (default is localhost)')
+   opt_parser.add_option('--es-port', dest='es_port', action='store', default='9200', help='The hostname of the Elasticsearch endpoint (default is 9200)')
 
    opt_parser.add_option('--slack', dest='slack', action='store_true', default=False, help='Send a message to a Slack channel (using the WOF fork of slackcat) once all the transfers are complete')
    opt_parser.add_option('--slack-config', dest='slack_config', action='store', default=None, help='The path to your slackcat config file')
