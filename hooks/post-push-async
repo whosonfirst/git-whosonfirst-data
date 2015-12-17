@@ -224,12 +224,12 @@ if __name__ == '__main__':
 
       if options.slack:
          cmd.extend([
-            "-slack"
+            "--slack"
          ])
 
       if options.slack_config:
          cmd.extend([
-            "-slack-config",
+            "--slack-config",
             options.slack_config,
          ])
 
