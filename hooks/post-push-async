@@ -69,10 +69,9 @@ if __name__ == '__main__':
 
    for rel_path in out.splitlines():
 
-      # account for alt files here... how?
-      # also sudo put this logic in a function
+      parsed = mapzen.whosonfirst.utils.parse_filename(fname)
 
-      if not rel_path.endswith(".geojson"):
+      if not parsed:
          continue
 
       # See this - this bit is important. The go-whosonfirst-s3 SyncFile

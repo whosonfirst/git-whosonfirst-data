@@ -99,11 +99,18 @@ if __name__ == '__main__':
 
    for fname in out.splitlines():
 
-      # account for alt files here... how?
-      # also sudo put this logic in a function
+      parsed = mapzen.whosonfirst.utils.parse_filename(fname)
 
-      if fname.endswith(".geojson"):
-         files.append(fname)
+      if not parsed:
+         continue
+
+      id, suffix = parsed
+
+      if suffix:
+         logging.info("%s has a suffix (%s) so skipping" % (fname, suffix))
+         continue
+
+      files.append(fname)
 
    if len(files) == 0:
       logging.info("nothing else in this commit that we need to apply post-commit hooks to")
