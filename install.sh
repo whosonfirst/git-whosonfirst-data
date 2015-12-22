@@ -3,8 +3,7 @@
 PYTHON=`which python`
 
 WHOAMI=`${PYTHON} -c 'import sys; import os; print os.path.abspath(sys.argv[1])' $0`
-BIN=`dirname ${WHOAMI}`
-ROOT=`dirname ${BIN}`
+ROOT=`dirname ${WHOAMI}`
 HOOKS="${ROOT}/hooks"
 
 WOFDATA=$1
