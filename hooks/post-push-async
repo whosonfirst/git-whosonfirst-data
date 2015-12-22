@@ -16,6 +16,8 @@ import logging
 import subprocess
 import tempfile
 
+import mapzen.whosonfirst.utils
+
 if __name__ == '__main__':
 
    import optparse
@@ -69,7 +71,7 @@ if __name__ == '__main__':
 
    for rel_path in out.splitlines():
 
-      parsed = mapzen.whosonfirst.utils.parse_filename(fname)
+      parsed = mapzen.whosonfirst.utils.parse_filename(rel_path)
 
       if not parsed:
          continue
