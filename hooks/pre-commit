@@ -125,6 +125,13 @@ if __name__ == '__main__':
       updated.append(abs_path)
       recommit.append(rel_path)
 
+   # these are used to extend 'modified' and 'created' below
+
+   modified = []
+   created = []
+
+   # meta files
+
    # these are the meta files (including the -latest.csv pointers) that need to be made relative
    # in order to dance with the git commit
 
@@ -137,8 +144,23 @@ if __name__ == '__main__':
 
    _modified, _created = mapzen.whosonfirst.utils.update_placetype_metafiles(meta, updated, **meta_kwargs)
 
-   modified = []
-   created = []
+   for path in _modified:
+      path = path.replace(root + "/", "")
+      modified.append(path)
+
+   for path in _created:
+      path = path.replace(root + "/", "")
+      created.append(path)
+
+   # Concordances - IMPORTANT: per the caveats in the 'update_concordances_metafile'
+   # method we are still not pruning files in updated for only those with actual
+   # updates (to their concordances). This is a known-known that still needs to be
+   # addressed (20160119/thisisaaronland)
+
+   concordances = meta			# this will change (20160119/thisisaaronland)
+   concordances_kwargs = meta_kwargs	# these probably won't change but giving them a bespoke name anyway
+
+   _modified, _created = mapzen.whosonfirst.utils.update_concordances_metafile(concordances, updated, **concordances_kwargs)
 
    for path in _modified:
       path = path.replace(root + "/", "")
@@ -147,6 +169,8 @@ if __name__ == '__main__':
    for path in _created:
       path = path.replace(root + "/", "")
       created.append(path)
+
+   # phew!
 
    recommit.extend(modified)
    recommit.extend(created)
