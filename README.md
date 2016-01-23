@@ -8,13 +8,7 @@ This is still very much a work in progress. Depending on when you read these wor
 
 ## Dependencies
 
-Currently this repository lacks a handy script for installing dependencies so you will need to ensure that recent versions of the following are installed:
-
-* https://github.com/whosonfirst/py-mapzen-whosonfirst-utils
-* https://github.com/whosonfirst/py-mapzen-whosonfirst-export
-* https://github.com/whosonfirst/py-mapzen-whosonfirst-validator
-* https://github.com/whosonfirst/py-mapzen-whosonfirst-search
-* https://github.com/whosonfirst/py-mapzen-whosonfirst-aws
+Currently this repository lacks a handy script for installing dependencies so the easiest way to deal with this is to install the [py-mapzen-whosonfirst](https://github.com/whosonfirst/py-mapzen-whosonfirst) bundle which will install everything you need (and a few things you don't).
 
 If you are using asynchronous `post-push` hooks (described below) you will also need to install:
 

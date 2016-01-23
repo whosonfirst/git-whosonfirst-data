@@ -17,6 +17,7 @@ import StringIO
 import mapzen.whosonfirst.validator
 import mapzen.whosonfirst.export
 import mapzen.whosonfirst.utils
+import mapzen.whosonfirst.diff
 
 logging.basicConfig(level=logging.INFO)
 
@@ -154,21 +155,39 @@ if __name__ == '__main__':
 
    # Concordances - IMPORTANT: per the caveats in the 'update_concordances_metafile'
    # method we are still not pruning files in updated for only those with actual
-   # updates (to their concordances). This is a known-known that still needs to be
-   # addressed (20160119/thisisaaronland)
+   # updates (to their concordances). This is being done with the mapzen.whosonfirst.diff
+   # library. We will probably move this up the stack (in this workflow) at some point
+   # but for today it lives here... (20160122/thisisaaronland)
 
-   concordances = meta			# this will change (20160119/thisisaaronland)
-   concordances_kwargs = meta_kwargs	# these probably won't change but giving them a bespoke name anyway
+   diff = mapzen.whosonfirst.diff.compare(source=root)
+   updated_concordances = []
 
-   _modified, _created = mapzen.whosonfirst.utils.update_concordances_metafile(concordances, updated, **concordances_kwargs)
+   for path in updated:
 
-   for path in _modified:
-      path = path.replace(root + "/", "")
-      modified.append(path)
+      path = os.path.abspath(path)
+      id, ignore = mapzen.whosonfirst.utils.parse_filename(path)
 
-   for path in _created:
-      path = path.replace(root + "/", "")
-      created.append(path)
+      report = diff.report(id)
+      logging.info("change report for %s: %s" % (path, report))
+
+      if report['concordances'] == True:
+         updated_concordances.append(path)
+
+   logging.info("count updated: %d count updated w/ updated concordances: %d" % (len(updated), len(updated_concordances)))
+
+   if updated_concordances:
+      concordances = meta			# this will change (20160119/thisisaaronland)
+      concordances_kwargs = meta_kwargs		# these probably won't change but giving them a bespoke name anyway
+
+      _modified, _created = mapzen.whosonfirst.utils.update_concordances_metafile(concordances, updated_concordances, **concordances_kwargs)
+
+      for path in _modified:
+         path = path.replace(root + "/", "")
+         modified.append(path)
+
+      for path in _created:
+         path = path.replace(root + "/", "")
+         created.append(path)
 
    # phew!
 
