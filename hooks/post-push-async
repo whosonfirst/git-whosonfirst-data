@@ -32,6 +32,13 @@ if __name__ == '__main__':
    opt_parser.add_option('--es-host', dest='es_host', action='store', default='localhost', help='The hostname of the Elasticsearch endpoint (default is localhost)')
    opt_parser.add_option('--es-port', dest='es_port', action='store', default='9200', help='The hostname of the Elasticsearch endpoint (default is 9200)')
 
+   opt_parser.add_option('--bundle', dest='bundle', action='store_true', default=False, help='Regenerate placetype bundles (default is False)')
+
+   # THIS IS GOING AWAY...
+   opt_parser.add_option('--bundle-dest', dest='bundle_dest', action='store', default=None, help='Where placetype bundles are stored locally (default is None)')
+
+   opt_parser.add_option('--wof-bundle-tool', dest='wof_bundle', action='store', default=None, help='')
+
    opt_parser.add_option('--slack', dest='slack', action='store_true', default=False, help='Send a message to a Slack channel (using the WOF fork of slackcat) once all the transfers are complete')
    opt_parser.add_option('--slack-config', dest='slack_config', action='store', default=None, help='The path to your slackcat config file')
 
@@ -247,5 +254,33 @@ if __name__ == '__main__':
          pid = p.pid
 
          logging.info("launched with PID %s" % (pid))
+
+   if options.bundle:
+
+      clone_tool = os.path.join(bin, "wof-clone-metafiles")
+
+      bundle_tool = os.path.abspath(options.bundle_tool)
+      bundle_dest = os.path.abspath(options.bundle_dest)
+      
+      cmd = [
+         bundle_tool, 
+
+         "-s", "FIXME",
+         "-d", bundle_dest,
+         "--wof-clone", clone_tool,
+         "--aws-creds", options.s3_credentials,
+         "--aws-bucket", options.s3_bucket,
+      ]
+
+      str_cmd = " ".join(cmd)
+      logging.info("getting ready to %s" % str_cmd)
+      logging.info("BUT NOT REALLY SINCE THIS ISN'T DONE YET...")
+
+      """
+      p = subprocess.Popen(cmd)
+      pid = p.pid
+
+      logging.info("launched with PID %s" % (pid))
+      """
 
    sys.exit(0)
