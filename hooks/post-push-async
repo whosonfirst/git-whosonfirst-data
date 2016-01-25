@@ -153,10 +153,15 @@ if __name__ == '__main__':
          logging.error("unknown or unsupported platform: %s" % whatami)
          sys.exit(1)
 
-      sync = os.path.join(bin, "wof-sync-files")
+      sync_tool = os.path.join(bin, "wof-sync-files")			# go-whosonfirst-s3
+      index_tool = os.path.join(bin, "wof-es-index-filelist")		# py-mapzen-whosonfirst-search
+      clone_tool = os.path.join(bin, "wof-clone-metafiles")		# go-whosonfirst-clone
+      bundle_tool = os.path.join(bin, "wof-bundle-placetypes")		# py-mapzen-whosonfirst-bundles
+
+      #
 
       cmd = [
-         sync,
+         sync_tool,
          "-bucket", bucket,
          "-root", data,
          "-processes", "200",
@@ -217,12 +222,8 @@ if __name__ == '__main__':
       fh.write("\n".join(files))
       fh.close()
 
-      # https://github.com/whosonfirst/py-mapzen-whosonfirst-search
-
-      indexer = "/usr/local/bin/wof-es-index-filelist"
-
       cmd = [
-         indexer,
+         index_tool,
          "--host", options.es_host,
          "--tidy"
       ]
@@ -252,11 +253,10 @@ if __name__ == '__main__':
 
          logging.info("launched with PID %s" % (pid))
 
+   # generate new bundles
+
    if options.bundle:
 
-      clone_tool = os.path.join(bin, "wof-clone-metafiles")
-
-      bundle_tool = os.path.abspath(options.bundle_tool)
       bundle_dest = os.path.abspath(options.bundle_dest)
       
       cmd = [
