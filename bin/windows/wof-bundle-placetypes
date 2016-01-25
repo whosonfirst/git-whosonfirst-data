@@ -1,0 +1,49 @@
+#!/usr/bin/env python
+
+import os
+import sys
+import logging
+
+import mapzen.whosonfirst.placetypes
+import mapzen.whosonfirst.bundles
+
+if __name__ == '__main__':
+
+    import optparse
+
+    opt_parser = optparse.OptionParser()
+
+    opt_parser.add_option('-s', '--source', dest='source', action='store', default=None, help='')
+    opt_parser.add_option('-d', '--dest', dest='dest', action='store', default=None, help='')
+    opt_parser.add_option('--wof-clone', dest='clone', action='store', default=None, help='')
+    opt_parser.add_option('--aws-creds', dest='aws_creds', action='store', default=None, help='')
+    opt_parser.add_option('--aws-bucket', dest='aws_bucket', action='store', default=None, help='')
+
+    # TO DO: options for specifying placetypes / roles
+
+    opt_parser.add_option('-f', '--force', dest='force', action='store_true', default=False, help='... (default is False)')
+    opt_parser.add_option('-v', '--verbose', dest='verbose', action='store_true', default=False, help='Be chatty (default is False)')
+
+    options, args = opt_parser.parse_args()
+
+    if options.verbose:	
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.INFO)
+
+    kwargs = {
+        'source': options.source,
+        'dest': options.dest,
+        'clone': options.clone,
+        'aws_creds': options.aws_creds,
+        'aws_bucket': options.aws_bucket,
+        'force': options.force,
+    }
+
+    bdl = mapzen.whosonfirst.bundles.bundler(**kwargs)
+
+    for pt in mapzen.whosonfirst.placetypes.with_roles(['common', 'common_optional', 'optional']):
+
+        # TO DO: threads?
+
+        bdl.bundle(pt)

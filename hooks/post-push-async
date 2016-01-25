@@ -34,10 +34,7 @@ if __name__ == '__main__':
 
    opt_parser.add_option('--bundle', dest='bundle', action='store_true', default=False, help='Regenerate placetype bundles (default is False)')
 
-   # THIS IS GOING AWAY...
    opt_parser.add_option('--bundle-dest', dest='bundle_dest', action='store', default=None, help='Where placetype bundles are stored locally (default is None)')
-
-   opt_parser.add_option('--wof-bundle-tool', dest='wof_bundle', action='store', default=None, help='')
 
    opt_parser.add_option('--slack', dest='slack', action='store_true', default=False, help='Send a message to a Slack channel (using the WOF fork of slackcat) once all the transfers are complete')
    opt_parser.add_option('--slack-config', dest='slack_config', action='store', default=None, help='The path to your slackcat config file')
