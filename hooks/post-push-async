@@ -261,8 +261,7 @@ if __name__ == '__main__':
       
       cmd = [
          bundle_tool, 
-
-         "-s", "FIXME",
+         "-s", root,
          "-d", bundle_dest,
          "--wof-clone", clone_tool,
          "--aws-creds", options.s3_credentials,
