@@ -33,7 +33,6 @@ if __name__ == '__main__':
    opt_parser.add_option('--es-port', dest='es_port', action='store', default='9200', help='The hostname of the Elasticsearch endpoint (default is 9200)')
 
    opt_parser.add_option('--bundle', dest='bundle', action='store_true', default=False, help='Regenerate placetype bundles (default is False)')
-
    opt_parser.add_option('--bundle-dest', dest='bundle_dest', action='store', default=None, help='Where placetype bundles are stored locally (default is None)')
 
    opt_parser.add_option('--slack', dest='slack', action='store_true', default=False, help='Send a message to a Slack channel (using the WOF fork of slackcat) once all the transfers are complete')
@@ -107,6 +106,32 @@ if __name__ == '__main__':
       logging.info("nothing in this commit that we need to apply post-push-async hooks to")
       sys.exit(0)
 
+   bucket = options.s3_bucket
+   prefix = options.s3_prefix
+   credentials = options.s3_credentials
+   
+   whoami = os.path.abspath(sys.argv[0])
+   hooks = os.path.dirname(whoami)
+   hooks_root = os.path.dirname(hooks)
+   bin = os.path.join(hooks_root, 'bin')
+   
+   whatami = sys.platform
+
+   if whatami == 'darwin':
+      bin = os.path.join(bin, "osx")
+   elif whatami == 'win32':
+      bin = os.path.join(bin, "windows")
+   elif whatami == 'linux' or whatami == 'linux2':	# seriously... I have no idea what linux2 is...
+      bin = os.path.join(bin, "linux")        
+   else:
+      logging.error("unknown or unsupported platform: %s" % whatami)
+      sys.exit(1)
+
+   sync_tool = os.path.join(bin, "wof-sync-files")			# go-whosonfirst-s3
+   index_tool = os.path.join(bin, "wof-es-index-filelist")		# py-mapzen-whosonfirst-search
+   clone_tool = os.path.join(bin, "wof-clone-metafiles")		# go-whosonfirst-clone
+   bundle_tool = os.path.join(bin, "wof-bundle-placetypes")		# py-mapzen-whosonfirst-bundles
+
    if options.s3:
 
       fh = tempfile.NamedTemporaryFile(delete=False)
@@ -114,49 +139,6 @@ if __name__ == '__main__':
 
       fh.write("\n".join(files))
       fh.close()
-
-      bucket = options.s3_bucket
-      prefix = options.s3_prefix
-      credentials = options.s3_credentials
-      
-      # Now we figure out where the wof-sync-files binary is. As in:
-      # https://github.com/whosonfirst/go-whosonfirst-s3/
-
-      # Specifically this:
-
-      """
-      cd /usr/local/mapzen/go-whosonfirst-s3
-      export GOPATH=`pwd`
-      export GOOS='darwin'
-      export GOARCH='amd64'
-      go build -o /usr/local/mapzen/git-whosonfirst-data/bin/osx/wof-sync-files cmd/wof-sync-files.go 
-      export GOOS='windows'
-      go build -o /usr/local/mapzen/git-whosonfirst-data/bin/windows/wof-sync-files cmd/wof-sync-files.go 
-      export GOOS='linux'
-      go build -o /usr/local/mapzen/git-whosonfirst-data/bin/linux/wof-sync-files cmd/wof-sync-files.go 
-      """
-
-      whoami = os.path.abspath(sys.argv[0])
-      hooks = os.path.dirname(whoami)
-      root = os.path.dirname(hooks)
-      bin = os.path.join(root, 'bin')
-
-      whatami = sys.platform
-
-      if whatami == 'darwin':
-         bin = os.path.join(bin, "osx")
-      elif whatami == 'win32':
-         bin = os.path.join(bin, "windows")
-      elif whatami == 'linux' or whatami == 'linux2':	# seriously... I have no idea what linux2 is...
-         bin = os.path.join(bin, "linux")        
-      else:
-         logging.error("unknown or unsupported platform: %s" % whatami)
-         sys.exit(1)
-
-      sync_tool = os.path.join(bin, "wof-sync-files")			# go-whosonfirst-s3
-      index_tool = os.path.join(bin, "wof-es-index-filelist")		# py-mapzen-whosonfirst-search
-      clone_tool = os.path.join(bin, "wof-clone-metafiles")		# go-whosonfirst-clone
-      bundle_tool = os.path.join(bin, "wof-bundle-placetypes")		# py-mapzen-whosonfirst-bundles
 
       #
 
@@ -244,14 +226,10 @@ if __name__ == '__main__':
       str_cmd = " ".join(cmd)
       logging.info("getting ready to %s" % str_cmd)
 
-      if not os.path.exists(indexer):
-         logging.warning("%s does not exist" % indexer)
+      p = subprocess.Popen(cmd)
+      pid = p.pid
 
-      else:
-         p = subprocess.Popen(cmd)
-         pid = p.pid
-
-         logging.info("launched with PID %s" % (pid))
+      logging.info("launched with PID %s" % (pid))
 
    # generate new bundles
 
@@ -264,19 +242,18 @@ if __name__ == '__main__':
          "-s", root,
          "-d", bundle_dest,
          "--wof-clone", clone_tool,
-         "--aws-creds", options.s3_credentials,
-         "--aws-bucket", options.s3_bucket,
+         "--aws-bucket", bucket,
       ]
+
+      if credentials:
+         cmd.extend(["--aws-creds", credentials])
 
       str_cmd = " ".join(cmd)
       logging.info("getting ready to %s" % str_cmd)
-      logging.info("BUT NOT REALLY SINCE THIS ISN'T DONE YET...")
 
-      """
       p = subprocess.Popen(cmd)
       pid = p.pid
 
       logging.info("launched with PID %s" % (pid))
-      """
 
    sys.exit(0)
