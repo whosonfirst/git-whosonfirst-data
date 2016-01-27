@@ -61,9 +61,10 @@ if __name__ == '__main__':
    # invoked *from* the wof-data repository (20151113/thisisaaronland)
 
    root = os.getcwd()
+   base = os.path.basename(root)
 
-   if os.path.basename(root) != "whosonfirst-data":
-      logging.error("I don't think I am being invoked in the whosonfirst-data repository... RUNNING AWAY SCARED")
+   if not base.startswith("whosonfirst-data"):
+      logging.error("I don't think I am being invoked in the whosonfirst-data-* repository... RUNNING AWAY SCARED")
       sys.exit(1)
 
    data = os.path.join(root, "data")
