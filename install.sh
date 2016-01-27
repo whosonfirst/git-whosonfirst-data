@@ -27,7 +27,7 @@ then
     exit 1
 fi
 
-for HOOK in "pre-commit" "post-commit"
+for HOOK in "pre-commit" "post-commit" "post-push-async"
 do
 
     if [ -f ${GITHOOKS}/${HOOK} ]
@@ -46,5 +46,5 @@ do
     ln -s ${HOOKS}/${HOOK}  ${GITHOOKS}/${HOOK}
 done
 
-echo "post-push aliases have NOT been installed you will need to do that yourself - see documentation for details"
+echo "post-push aliases have been installed (in ${GITHOOKS}) not NOT ADDED to .git config file - you will need to do that yourself; see documentation for details"
 exit 0
