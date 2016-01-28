@@ -15,11 +15,13 @@ if __name__ == '__main__':
 
     opt_parser.add_option('-s', '--source', dest='source', action='store', default=None, help='')
     opt_parser.add_option('-d', '--dest', dest='dest', action='store', default=None, help='')
+    opt_parser.add_option('-p', '--placetypes', dest='placetypes', action='store', default=None, help='')
+    opt_parser.add_option('-S', '--suffix', dest='suffix', action='store', default='', help='')
+    # see below
+    # opt_parser.add_option('-r', '--roles', dest='roles', action='store', default=None, help='')
     opt_parser.add_option('--wof-clone', dest='clone', action='store', default=None, help='')
     opt_parser.add_option('--aws-creds', dest='aws_creds', action='store', default=None, help='')
     opt_parser.add_option('--aws-bucket', dest='aws_bucket', action='store', default=None, help='')
-
-    # TO DO: options for specifying placetypes / roles
 
     opt_parser.add_option('-f', '--force', dest='force', action='store_true', default=False, help='... (default is False)')
     opt_parser.add_option('-v', '--verbose', dest='verbose', action='store_true', default=False, help='Be chatty (default is False)')
@@ -42,8 +44,36 @@ if __name__ == '__main__':
 
     bdl = mapzen.whosonfirst.bundles.bundler(**kwargs)
 
-    for pt in mapzen.whosonfirst.placetypes.with_roles(['common', 'common_optional', 'optional']):
+    # PLEASE PUT ME IN A LIBRARY... (20160127/thisisaaronland)
+
+    def placetypes(options):
+
+        if options.placetypes:
+
+            placetypes = options.placetypes.split(",")
+
+            for pt in placetypes:
+                pt = pt.strip()
+
+                if not mapzen.whosonfirst.placetypes.is_valid_placetype(pt):
+                    logging.warning("%s is not a valid placetype, skipping")
+                    continue
+
+                yield pt
+
+        # TO DO options.roles
+
+        else:
+
+            for pt in mapzen.whosonfirst.placetypes.with_roles(['common', 'common_optional', 'optional']):
+                yield pt
+    
+    iter = placetypes(options)
+
+    for pt in iter:
+
+        logging.info("bundle %s (%s)" % (pt, options.suffix))
 
         # TO DO: threads?
 
-        bdl.bundle(pt)
+        bdl.bundle(pt, suffix=options.suffix)
