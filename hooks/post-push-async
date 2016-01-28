@@ -242,6 +242,7 @@ if __name__ == '__main__':
          bundle_tool, 
          "-s", root,
          "-d", bundle_dest,
+         "-S", "latest",
          "--wof-clone", clone_tool,
          "--aws-bucket", bucket,
       ]
