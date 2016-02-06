@@ -26,12 +26,15 @@ logging.basicConfig(level=logging.INFO)
 
 if __name__ == '__main__':
 
-   out = subprocess.check_output(["git", "log", "-1", "HEAD"])
-   out = out.splitlines()
+   try:
+      out = subprocess.check_output(["git", "log", "-1", "HEAD"])
+      out = out.splitlines()
    
-   ignore, hash = out[0].split(" ")
+      ignore, hash = out[0].split(" ")
 
-   logging.info("invoking git-whosonfirst-mapzen pre-commit hooks for %s" % hash)
+      logging.info("invoking git-whosonfirst-mapzen pre-commit hooks for %s" % hash)
+   except Exception, e:
+      logging.warning("failed to determined git hash, because %s" % e)
 
    # Some basic sanity checking to ensure that people are running the most recent
    # version of the py-mz-wof libraries (20160127/thisisaaronland)
@@ -192,11 +195,14 @@ if __name__ == '__main__':
       path = os.path.abspath(path)
       id, ignore = mapzen.whosonfirst.utils.parse_filename(path)
 
-      report = diff.report(id)
-      logging.info("change report for %s: %s" % (path, report))
+      try:
+         report = diff.report(id)
+         logging.info("change report for %s: %s" % (path, report))
 
-      if report['concordances'] == True:
-         updated_concordances.append(path)
+         if report['concordances'] == True:
+            updated_concordances.append(path)
+      except Exception, e:
+         logging.warning("failed to generate report for %s, because %s" % (path, e))
 
    logging.info("count updated: %d count updated w/ updated concordances: %d" % (len(updated), len(updated_concordances)))
 
