@@ -16,10 +16,33 @@ logging.basicConfig(level=logging.INFO)
 
 if __name__ == '__main__':
 
-   out = subprocess.check_output(["git", "log", "-1", "HEAD"])
-   out = out.splitlines()
+   import optparse
+   opt_parser = optparse.OptionParser()
+
+   opt_parser.add_option('--commit-hash', dest='commit_hash', action='store', default="HEAD", help='Invoke hooks for a specific commit hash, default is HEAD')
+   opt_parser.add_option('-v', '--verbose', dest='verbose', action='store_true', default=False, help='Be chatty (default is false)')
    
-   ignore, hash = out[0].split(" ")
+   options, args = opt_parser.parse_args()
+
+   if options.verbose:	
+      logging.basicConfig(level=logging.DEBUG)
+   else:
+      logging.basicConfig(level=logging.INFO)
+
+   commit_hash = options.commit_hash
+
+   if commit_hash == "HEAD":
+
+      cmd = ["git", "log", "-1", "HEAD"]
+      logging.debug(" ".join(cmd))
+
+      out = subprocess.check_output(cmd)
+      out = out.splitlines()
+      
+      ignore, hash = out[0].split(" ")
+
+   else:
+      hash = commit_hash
 
    logging.info("invoking git-whosonfirst-mapzen post-commit hooks for %s" % hash)
 
@@ -35,7 +58,10 @@ if __name__ == '__main__':
    data = os.path.join(root, "data")
    meta = os.path.join(root, "meta")
 
-   out = subprocess.check_output(["git", "show", "--pretty=format:", "--name-only", "HEAD"])
+   cmd = ["git", "show", "--pretty=format:", "--name-only", commit_hash]
+   logging.debug(" ".join(cmd))
+
+   out = subprocess.check_output(cmd)
    files = []
 
    # see also: notes in pre-commit
@@ -90,7 +116,9 @@ if __name__ == '__main__':
          # interview question (good albeit cruel) but isn't very useful
          # for actually getting any work done... (20151112/thisisaaronland)
 
-         cmd = ["git", "commit", "--amend", "-C", "HEAD", "--no-verify"]
+         cmd = ["git", "commit", "--amend", "-C", commit_hash, "--no-verify"]
+         logging.debug(" ".join(cmd))
+
          out = subprocess.check_output(cmd)
 
          logging.info(" ".join(cmd))

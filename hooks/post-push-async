@@ -51,13 +51,18 @@ if __name__ == '__main__':
 
    commit_hash = options.commit_hash
 
-   cmd = ["git", "log", "-1", commit_hash]
-   logging.debug(" ".join(cmd))
+   if commit_hash == "HEAD":
 
-   out = subprocess.check_output(cmd)
-   out = out.splitlines()
+      cmd = ["git", "log", "-1", "HEAD"]
+      logging.debug(" ".join(cmd))
+
+      out = subprocess.check_output(cmd)
+      out = out.splitlines()
       
-   ignore, hash = out[0].split(" ")
+      ignore, hash = out[0].split(" ")
+
+   else:
+      hash = commit_hash
 
    logging.info("invoking git-whosonfirst-mapzen post-push hooks for %s" % hash)
 

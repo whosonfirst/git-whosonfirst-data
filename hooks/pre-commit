@@ -26,15 +26,35 @@ logging.basicConfig(level=logging.INFO)
 
 if __name__ == '__main__':
 
-   try:
-      out = subprocess.check_output(["git", "log", "-1", "HEAD"])
-      out = out.splitlines()
+   import optparse
+   opt_parser = optparse.OptionParser()
+
+   opt_parser.add_option('--commit-hash', dest='commit_hash', action='store', default="HEAD", help='Invoke hooks for a specific commit hash, default is HEAD')
+   opt_parser.add_option('-v', '--verbose', dest='verbose', action='store_true', default=False, help='Be chatty (default is false)')
    
+   options, args = opt_parser.parse_args()
+
+   if options.verbose:	
+      logging.basicConfig(level=logging.DEBUG)
+   else:
+      logging.basicConfig(level=logging.INFO)
+
+   commit_hash = options.commit_hash
+
+   if commit_hash == "HEAD":
+
+      cmd = ["git", "log", "-1", "HEAD"]
+      logging.debug(" ".join(cmd))
+
+      out = subprocess.check_output(cmd)
+      out = out.splitlines()
+      
       ignore, hash = out[0].split(" ")
 
-      logging.info("invoking git-whosonfirst-mapzen pre-commit hooks for %s" % hash)
-   except Exception, e:
-      logging.warning("failed to determined git hash, because %s" % e)
+   else:
+      hash = commit_hash
+
+   logging.info("invoking git-whosonfirst-mapzen pre-commit hooks for %s" % hash)
 
    # Some basic sanity checking to ensure that people are running the most recent
    # version of the py-mz-wof libraries (20160127/thisisaaronland)
@@ -74,9 +94,30 @@ if __name__ == '__main__':
 
    modified = re.compile('^[MA]\s+(?P<name>.*)$')
 
-   out = subprocess.check_output(["git", "status", "--porcelain"])
+   # cmd = ["git", "status", "--porcelain"]
+
+   cmd  = ["git", "show", "--pretty=format:", "--name-only", commit_hash]
+   logging.debug(" ".join(cmd))
+
+   out = subprocess.check_output(cmd)
    files = []
 
+   for fname in out.splitlines():
+
+      parsed = mapzen.whosonfirst.utils.parse_filename(fname)
+
+      if not parsed:
+         continue
+
+      id, suffix = parsed
+
+      if suffix:
+         logging.info("%s has a suffix (%s) so skipping" % (fname, suffix))
+         continue
+            
+      files.append(fname)
+
+   """
    for line in out.splitlines():
 
       match = modified.match(line)
@@ -96,7 +137,8 @@ if __name__ == '__main__':
             continue
             
          files.append(fname)
-      
+   """
+
    # end sudo put me in a function
 
    if len(files) == 0:
