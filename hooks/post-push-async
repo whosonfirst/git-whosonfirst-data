@@ -38,6 +38,8 @@ if __name__ == '__main__':
    opt_parser.add_option('--slack', dest='slack', action='store_true', default=False, help='Send a message to a Slack channel (using the WOF fork of slackcat) once all the transfers are complete')
    opt_parser.add_option('--slack-config', dest='slack_config', action='store', default=None, help='The path to your slackcat config file')
 
+   opt_parser.add_option('--commit-hash', dest='commit_hash', action='store', default="HEAD", help='Invoke hooks for a specific commit hash, default is HEAD')
+
    opt_parser.add_option('-v', '--verbose', dest='verbose', action='store_true', default=False, help='Be chatty (default is false)')
    
    options, args = opt_parser.parse_args()
@@ -47,10 +49,14 @@ if __name__ == '__main__':
    else:
       logging.basicConfig(level=logging.INFO)
 
+   commit_hash = options.commit_hash
 
-   out = subprocess.check_output(["git", "log", "-1", "HEAD"])
+   cmd = ["git", "log", "-1", commit_hash]
+   logging.debug(" ".join(cmd))
+
+   out = subprocess.check_output(cmd)
    out = out.splitlines()
-   
+      
    ignore, hash = out[0].split(" ")
 
    logging.info("invoking git-whosonfirst-mapzen post-push hooks for %s" % hash)
@@ -70,7 +76,10 @@ if __name__ == '__main__':
    data = os.path.join(root, "data")
    meta = os.path.join(root, "meta")
 
-   out = subprocess.check_output(["git", "show", "--pretty=format:", "--name-only", "HEAD"])
+   cmd  = ["git", "show", "--pretty=format:", "--name-only", commit_hash]
+   logging.debug(" ".join(cmd))
+
+   out = subprocess.check_output(cmd)
    files = []
 
    for rel_path in out.splitlines():
