@@ -46,6 +46,13 @@ if __name__ == '__main__':
 
    logging.info("invoking git-whosonfirst-mapzen post-commit hooks for %s" % hash)
 
+   # I dunno ... still trying to work out how to make this all invoked from
+   # a specific commit hash as well as just the default "most recent" work
+   # (20160326/thisisaaronland)
+   
+   if commit_hash != "HEAD":
+      logging.warning("commit hash is not HEAD so it's not clear what's going to happen...")
+
    # who's on first... har har har... sad trombone
    
    whoami = sys.argv[0]
