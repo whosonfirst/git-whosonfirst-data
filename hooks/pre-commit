@@ -21,6 +21,7 @@ import mapzen.whosonfirst.validator
 import mapzen.whosonfirst.export
 import mapzen.whosonfirst.utils
 import mapzen.whosonfirst.diff
+import mapzen.whosonfirst.git
 
 logging.basicConfig(level=logging.INFO)
 
@@ -29,7 +30,9 @@ if __name__ == '__main__':
    import optparse
    opt_parser = optparse.OptionParser()
 
-   opt_parser.add_option('--commit-hash', dest='commit_hash', action='store', default="HEAD", help='Invoke hooks for a specific commit hash, default is HEAD')
+   opt_parser.add_option('--start-commit', dest='start_commit', action='store', default=None, help='The starting commit hash for determining changes (default is HEAD -2)')
+   opt_parser.add_option('--stop-commit', dest='stop_commit', action='store', default=None, help='The ending commit hash for determining changes (default is HEAD -1)')
+
    opt_parser.add_option('-v', '--verbose', dest='verbose', action='store_true', default=False, help='Be chatty (default is false)')
    
    options, args = opt_parser.parse_args()
@@ -38,30 +41,6 @@ if __name__ == '__main__':
       logging.basicConfig(level=logging.DEBUG)
    else:
       logging.basicConfig(level=logging.INFO)
-
-   commit_hash = options.commit_hash
-
-   if commit_hash == "HEAD":
-
-      cmd = ["git", "log", "-1", "HEAD"]
-      logging.debug(" ".join(cmd))
-
-      out = subprocess.check_output(cmd)
-      out = out.splitlines()
-      
-      ignore, hash = out[0].split(" ")
-
-   else:
-      hash = commit_hash
-
-   logging.info("invoking git-whosonfirst-mapzen pre-commit hooks for %s" % hash)
-
-   # I dunno ... still trying to work out how to make this all invoked from
-   # a specific commit hash as well as just the default "most recent" work
-   # (20160326/thisisaaronland)
-   
-   if commit_hash != "HEAD":
-      logging.warning("commit hash is not HEAD so it's not clear what's going to happen...")
 
    # Some basic sanity checking to ensure that people are running the most recent
    # version of the py-mz-wof libraries (20160127/thisisaaronland)
@@ -85,8 +64,36 @@ if __name__ == '__main__':
    if pymz != current:
       logging.warning("You are running version %s of py-mapzen-whosonfirst but the current version is %s - you should update because HILARITY may ensue if you don't" % (pymz, current))
 
-   # who's on first... har har har... sad trombone
-   
+   # who's on first... har har har... sad trombone - remember that unlike
+   # the other git hooks which are meant to be copied over to the wof-data
+   # .git/hooks repository this one is stored somewhere and meant to be
+   # invoked *from* the wof-data repository (20151113/thisisaaronland)
+
+   root = os.getcwd()
+   base = os.path.basename(root)
+
+   if not base.startswith("whosonfirst-data"):
+      logging.error("I don't think I am being invoked in the whosonfirst-data-* repository... RUNNING AWAY SCARED")
+      sys.exit(1)
+
+   # What do we have to work with...
+
+   start_commit = options.start_commit
+   stop_commit = options.stop_commit
+
+   if not start_commit:
+      start_commit = mapzen.whosonfirst.git.get_previous_hash()
+
+   if not stop_commit:
+      stop_commit = mapzen.whosonfirst.git.get_current_hash()
+
+   logging.info("invoking git-whosonfirst-mapzen post-push hooks for %s - %s" % (start_commit, stop_commit))
+
+   diff = mapzen.whosonfirst.git.get_diff(start_commit, stop_commit)
+   logging.info("invoking hooks on %s possible files" % len(diff))
+
+   #
+
    whoami = sys.argv[0]
    whoami = os.path.abspath(whoami)
 
@@ -97,8 +104,9 @@ if __name__ == '__main__':
    data = os.path.join(root, "data")
    meta = os.path.join(root, "meta")
 
-   # sudo put me in a function
+   # deprecated... maybe? (20160331/thisisaaronland)
 
+   """
    modified = re.compile('^[MA]\s+(?P<name>.*)$')
 
    # I dunno ... still trying to work out how to make this all invoked from
@@ -132,12 +140,13 @@ if __name__ == '__main__':
 
       else:
          possible.append(line)
+   """
 
    #
 
    files = []
 
-   for fname in possible:
+   for fname in diff:
 
       parsed = mapzen.whosonfirst.utils.parse_filename(fname)
 
@@ -151,30 +160,6 @@ if __name__ == '__main__':
          continue
             
       files.append(fname)
-
-   """
-   for line in out.splitlines():
-
-      match = modified.match(line)
-
-      if match:
-
-         fname = match.group('name')
-         parsed = mapzen.whosonfirst.utils.parse_filename(fname)
-
-         if not parsed:
-            continue
-
-         id, suffix = parsed
-
-         if suffix:
-            logging.info("%s has a suffix (%s) so skipping" % (fname, suffix))
-            continue
-            
-         files.append(fname)
-   """
-
-   # end sudo put me in a function
 
    if len(files) == 0:
       logging.info("nothing in this commit that we need to apply pre-commit hooks to")

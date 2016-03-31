@@ -11,6 +11,7 @@ import logging
 import subprocess
 
 import mapzen.whosonfirst.utils
+import mapzen.whosonfirst.git
 
 logging.basicConfig(level=logging.INFO)
 
@@ -19,7 +20,9 @@ if __name__ == '__main__':
    import optparse
    opt_parser = optparse.OptionParser()
 
-   opt_parser.add_option('--commit-hash', dest='commit_hash', action='store', default="HEAD", help='Invoke hooks for a specific commit hash, default is HEAD')
+   opt_parser.add_option('--start-commit', dest='start_commit', action='store', default=None, help='The starting commit hash for determining changes (default is HEAD -2)')
+   opt_parser.add_option('--stop-commit', dest='stop_commit', action='store', default=None, help='The ending commit hash for determining changes (default is HEAD -1)')
+
    opt_parser.add_option('-v', '--verbose', dest='verbose', action='store_true', default=False, help='Be chatty (default is false)')
    
    options, args = opt_parser.parse_args()
@@ -29,32 +32,25 @@ if __name__ == '__main__':
    else:
       logging.basicConfig(level=logging.INFO)
 
-   commit_hash = options.commit_hash
+   # What do we have to work with...
 
-   if commit_hash == "HEAD":
+   start_commit = options.start_commit
+   stop_commit = options.stop_commit
 
-      cmd = ["git", "log", "-1", "HEAD"]
-      logging.debug(" ".join(cmd))
+   if not start_commit:
+      start_commit = mapzen.whosonfirst.git.get_previous_hash()
 
-      out = subprocess.check_output(cmd)
-      out = out.splitlines()
-      
-      ignore, hash = out[0].split(" ")
+   if not stop_commit:
+      stop_commit = mapzen.whosonfirst.git.get_current_hash()
 
-   else:
-      hash = commit_hash
+   logging.info("invoking git-whosonfirst-mapzen post-push hooks for %s - %s" % (start_commit, stop_commit))
 
-   logging.info("invoking git-whosonfirst-mapzen post-commit hooks for %s" % hash)
+   # I am not sure we even need any of this... (20160331/thisisaaronland)
+   # diff = mapzen.whosonfirst.git.get_diff(start_commit, stop_commit)
+   # logging.info("invoking hooks on %s possible files" % len(diff))
 
-   # I dunno ... still trying to work out how to make this all invoked from
-   # a specific commit hash as well as just the default "most recent" work
-   # (20160326/thisisaaronland)
-   
-   if commit_hash != "HEAD":
-      logging.warning("commit hash is not HEAD so it's not clear what's going to happen...")
+   #
 
-   # who's on first... har har har... sad trombone
-   
    whoami = sys.argv[0]
    whoami = os.path.abspath(whoami)
 
@@ -65,10 +61,6 @@ if __name__ == '__main__':
    data = os.path.join(root, "data")
    meta = os.path.join(root, "meta")
 
-   cmd = ["git", "show", "--pretty=format:", "--name-only", commit_hash]
-   logging.debug(" ".join(cmd))
-
-   out = subprocess.check_output(cmd)
    files = []
 
    # see also: notes in pre-commit

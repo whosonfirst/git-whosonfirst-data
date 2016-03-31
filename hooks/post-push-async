@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*-python-*-
 
-# Please to be reading these before you start making changes here:
+# Please to be reading these before you startmaking changes here:
 # https://github.com/whosonfirst/git-whosonfirst-data#post-push
 # https://github.com/whosonfirst/git-whosonfirst-data#caveats
 # https://stackoverflow.com/questions/1797074/local-executing-hook-after-a-git-push#3466589
@@ -39,8 +39,8 @@ if __name__ == '__main__':
    opt_parser.add_option('--slack', dest='slack', action='store_true', default=False, help='Send a message to a Slack channel (using the WOF fork of slackcat) once all the transfers are complete')
    opt_parser.add_option('--slack-config', dest='slack_config', action='store', default=None, help='The path to your slackcat config file')
 
-   opt_parser.add_option('--start-commit', dest='start_commit', action='store', default=None, help='')
-   opt_parser.add_option('--stop-commit', dest='stop_commit', action='store', default=None, help='')
+   opt_parser.add_option('--start-commit', dest='start_commit', action='store', default=None, help='The starting commit hash for determining changes (default is HEAD -2)')
+   opt_parser.add_option('--stop-commit', dest='stop_commit', action='store', default=None, help='The ending commit hash for determining changes (default is HEAD -1)')
 
    opt_parser.add_option('-v', '--verbose', dest='verbose', action='store_true', default=False, help='Be chatty (default is false)')
    
@@ -50,17 +50,6 @@ if __name__ == '__main__':
       logging.basicConfig(level=logging.DEBUG)
    else:
       logging.basicConfig(level=logging.INFO)
-
-   start_commit = options.start_commit
-   stop_commit = options.stop_commit
-
-   if not start_commit:
-      start_commit = mapzen.whosonfirst.git.get_previous_hash()
-
-   if not stop_commit:
-      stop_commit = mapzen.whosonfirst.git.get_current_hash()
-
-   logging.info("invoking git-whosonfirst-mapzen post-push hooks for %s - %s" % (start_commit, stop_commit))
 
    # who's on first... har har har... sad trombone - remember that unlike
    # the other git hooks which are meant to be copied over to the wof-data
@@ -74,10 +63,27 @@ if __name__ == '__main__':
       logging.error("I don't think I am being invoked in the whosonfirst-data-* repository... RUNNING AWAY SCARED")
       sys.exit(1)
 
+   # What do we have to work with...
+
+   start_commit = options.start_commit
+   stop_commit = options.stop_commit
+
+   if not start_commit:
+      start_commit = mapzen.whosonfirst.git.get_previous_hash()
+
+   if not stop_commit:
+      stop_commit = mapzen.whosonfirst.git.get_current_hash()
+
+   logging.info("invoking git-whosonfirst-mapzen post-push hooks for %s - %s" % (start_commit, stop_commit))
+
+   diff = mapzen.whosonfirst.git.get_diff(start_commit, stop_commit)
+   logging.info("invoking hooks on %s possible files" % len(diff))
+
+   #
+
    data = os.path.join(root, "data")
    meta = os.path.join(root, "meta")
 
-   diff = mapzen.whosonfirst.git.get_diff(start_commit, stop_commit)
    files = []
 
    for rel_path in diff:
