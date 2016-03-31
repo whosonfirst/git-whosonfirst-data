@@ -17,6 +17,7 @@ import subprocess
 import tempfile
 
 import mapzen.whosonfirst.utils
+import mapzen.whosonfirst.git
 
 if __name__ == '__main__':
 
@@ -38,7 +39,8 @@ if __name__ == '__main__':
    opt_parser.add_option('--slack', dest='slack', action='store_true', default=False, help='Send a message to a Slack channel (using the WOF fork of slackcat) once all the transfers are complete')
    opt_parser.add_option('--slack-config', dest='slack_config', action='store', default=None, help='The path to your slackcat config file')
 
-   opt_parser.add_option('--commit-hash', dest='commit_hash', action='store', default="HEAD", help='Invoke hooks for a specific commit hash, default is HEAD')
+   opt_parser.add_option('--start-commit', dest='start_commit', action='store', default=None, help='')
+   opt_parser.add_option('--stop-commit', dest='stop_commit', action='store', default=None, help='')
 
    opt_parser.add_option('-v', '--verbose', dest='verbose', action='store_true', default=False, help='Be chatty (default is false)')
    
@@ -49,29 +51,16 @@ if __name__ == '__main__':
    else:
       logging.basicConfig(level=logging.INFO)
 
-   commit_hash = options.commit_hash
+   start_commit = options.start_commit
+   stop_commit = options.stop_commit
 
-   if commit_hash == "HEAD":
+   if not start_commit:
+      start_commit = mapzen.whosonfirst.git.get_previous_hash()
 
-      cmd = ["git", "log", "-1", "HEAD"]
-      logging.debug(" ".join(cmd))
+   if not stop_commit:
+      stop_commit = mapzen.whosonfirst.git.get_current_hash()
 
-      out = subprocess.check_output(cmd)
-      out = out.splitlines()
-      
-      ignore, hash = out[0].split(" ")
-
-   else:
-      hash = commit_hash
-
-   # I dunno ... still trying to work out how to make this all invoked from
-   # a specific commit hash as well as just the default "most recent" work
-   # (20160326/thisisaaronland)
-   
-   if commit_hash != "HEAD":
-      logging.warning("commit hash is not HEAD so it's not clear what's going to happen...")
-
-   logging.info("invoking git-whosonfirst-mapzen post-push hooks for %s" % hash)
+   logging.info("invoking git-whosonfirst-mapzen post-push hooks for %s - %s" % (start_commit, stop_commit))
 
    # who's on first... har har har... sad trombone - remember that unlike
    # the other git hooks which are meant to be copied over to the wof-data
@@ -88,13 +77,10 @@ if __name__ == '__main__':
    data = os.path.join(root, "data")
    meta = os.path.join(root, "meta")
 
-   cmd  = ["git", "show", "--pretty=format:", "--name-only", commit_hash]
-   logging.debug(" ".join(cmd))
-
-   out = subprocess.check_output(cmd)
+   diff = mapzen.whosonfirst.git.get_diff(start_commit, stop_commit)
    files = []
 
-   for rel_path in out.splitlines():
+   for rel_path in diff:
 
       parsed = mapzen.whosonfirst.utils.parse_filename(rel_path)
 
