@@ -5,6 +5,6 @@ s3_prefix=
 es=
 es_host=
 es_port=
-slackcat=
+slack=
 bundle=
 bundle_dest=
