@@ -72,10 +72,13 @@ if __name__ == '__main__':
    # Can has config?
 
    if not options.config:
-      logging.error("Missing config file!")
-      sys.exit(1)
 
-   path_config = os.path.abspath(options.config)
+      whoami = os.path.abspath(sys.argv[0])
+      hooks = os.path.dirname(whoami)
+      path_config = os.path.join(hooks, 'hooks.cfg')
+
+   else:
+      path_config = os.path.abspath(options.config)
 
    if not os.path.exists(path_config):
       logging.error("INVISIBLE CONFIG FILE")
@@ -174,7 +177,10 @@ if __name__ == '__main__':
 
    s3_bucket = cfg.get('post-push', 's3_bucket')
    s3_prefix = cfg.get('post-push', 's3_prefix')
-   s3_credentials = cfg.get('post-push', 's3_credentials')
+   s3_credentials = None
+
+   if cfg.has_option('post-push', 's3_credentials'):
+      s3_crendentials = cfg.get('post-push', 's3_credentials')
    
    if do_s3:
 
