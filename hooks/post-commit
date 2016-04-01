@@ -115,7 +115,7 @@ if __name__ == '__main__':
          # interview question (good albeit cruel) but isn't very useful
          # for actually getting any work done... (20151112/thisisaaronland)
 
-         cmd = ["git", "commit", "--amend", "-C", commit_hash, "--no-verify"]
+         cmd = ["git", "commit", "--amend", "-C", start_commit, "--no-verify"]
          logging.debug(" ".join(cmd))
 
          out = subprocess.check_output(cmd)
@@ -123,29 +123,7 @@ if __name__ == '__main__':
          logging.info(" ".join(cmd))
          logging.info(out)
 
-   # okay now we're going to see if there are any files we need to modify
-   # post-commit... because, you know... post-commit
-
-   for fname in out.splitlines():
-
-      parsed = mapzen.whosonfirst.utils.parse_filename(fname)
-
-      if not parsed:
-         continue
-
-      id, suffix = parsed
-
-      if suffix:
-         logging.info("%s has a suffix (%s) so skipping" % (fname, suffix))
-         continue
-
-      files.append(fname)
-
-   if len(files) == 0:
-      logging.info("nothing else in this commit that we need to apply post-commit hooks to")
-      sys.exit(0)
-
    # not a bug - we just haven't defined anything beyond this stage
-   # see post-push for hooks to push to S3 etc (20151113/thisisaaronland)
+   # see post-push-async for hooks to push to S3 etc (20151113/thisisaaronland)
 
    sys.exit(0)
