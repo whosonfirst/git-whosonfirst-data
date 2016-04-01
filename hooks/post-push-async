@@ -69,11 +69,18 @@ if __name__ == '__main__':
       logging.error("I don't think I am being invoked in the whosonfirst-data-* repository... RUNNING AWAY SCARED")
       sys.exit(1)
 
+   # In case some one is running this straight out of the
+   # .git/hooks folder
+
+   whoami = os.path.abspath(sys.argv[0])
+
+   if os.path.islink(whoami):
+      whoami = os.path.realpath(whoami)
+
    # Can has config?
 
    if not options.config:
 
-      whoami = os.path.abspath(sys.argv[0])
       hooks = os.path.dirname(whoami)
       path_config = os.path.join(hooks, 'hooks.cfg')
 
@@ -81,7 +88,7 @@ if __name__ == '__main__':
       path_config = os.path.abspath(options.config)
 
    if not os.path.exists(path_config):
-      logging.error("INVISIBLE CONFIG FILE")
+      logging.error("INVISIBLE CONFIG FILE %s" % path_config)
       sys.exit(1)
 
    cfg = ConfigParser.ConfigParser()
@@ -144,7 +151,6 @@ if __name__ == '__main__':
       logging.info("nothing in this commit that we need to apply post-push-async hooks to")
       sys.exit(0)
 
-   whoami = os.path.abspath(sys.argv[0])
    hooks = os.path.dirname(whoami)
    hooks_root = os.path.dirname(hooks)
    bin = os.path.join(hooks_root, 'bin')
