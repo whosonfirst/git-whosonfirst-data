@@ -1,0 +1,11 @@
+[post-push]
+s3=
+s3_bucket=
+s3_prefix=
+es=
+es_host=
+slackcat=
+slackcat_config=
+verbose=
+bundle=
+bundle_dest=

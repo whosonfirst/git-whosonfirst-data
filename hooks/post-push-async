@@ -22,7 +22,11 @@ import mapzen.whosonfirst.git
 if __name__ == '__main__':
 
    import optparse
+   import ConfigParser
+
    opt_parser = optparse.OptionParser()
+
+   opt_parser.add_option('-c', '--config', dest='config', action='store', default=None, help='')
 
    opt_parser.add_option('--s3', dest='s3', action='store_true', default=False, help='Sync files to S3 (default is False)')
    opt_parser.add_option('--s3-bucket', dest='s3_bucket', action='store', default=None, help='The name of the S3 bucket to sync files to')
@@ -62,6 +66,13 @@ if __name__ == '__main__':
    if not base.startswith("whosonfirst-data"):
       logging.error("I don't think I am being invoked in the whosonfirst-data-* repository... RUNNING AWAY SCARED")
       sys.exit(1)
+
+   # Can has config?
+
+   if options.config:
+
+      cfg = ConfigParser.ConfigParser()
+      cfg.read(options.config)
 
    # What do we have to work with...
 
