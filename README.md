@@ -50,63 +50,39 @@ This is where we attempt to upload the updated WOF documents to a Mapzen / Who's
 Git doesn't actually support _post_ push hooks so you will need to install this as part of a Git (push) alias and invoke the alias explicitly when you push to a branch. To install the alias you would do the following _from_ your copy of the [whosonfirst-data]() repository.
 
 ```
-$> git config alias.xpush '!git push $1 $2 && /usr/local/mapzen/git-whosonfirst-data/hooks/post-push <options>'
+$> git config alias.xpush '!git push $1 $2 && /usr/local/mapzen/git-whosonfirst-data/hooks/post-push-async'
 ```
 
-You should adjust the name of `xpush` alias and the path the `post-push` script as necessary to reflect the reality of your setup. When you're ready to commit changes you would type:
+You should adjust the name of `xpush` alias and the path the `post-push-async` script as necessary to reflect the reality of your setup. When you're ready to commit changes you would type:
 
 ```
 $> git xpush origin <branch>
 ```
 
-Which will do the usual `git push origin <branch>` dance and _then_ invoke the `post-push` hook. As of this writing the hook is not smart enough to check for, or limit itself, to a specific branch being pushed to.
+Which will do the usual `git push origin <branch>` dance and _then_ invoke the `post-push-async` hook. As of this writing the hook is not smart enough to check for, or limit itself, to a specific branch being pushed to.
 
 #### It's actually more complicated...
 
-There is where the post-push hook will _attempt_ to upload modified files to S3 if it's been configured correctly, which means passing a few extra arguments to the `post-push` script when you define your Git alias. These are:
+The `post-push-async` command actually invokes a number of different processes (asynchronously) that each need their own configuration variables. These variables are stored in a standard `.ini` config file. By default the `post-push-async` script looks for a config file named `hooks.cfg` in its parent directory. You can specify an alternate path using the `-c` or `--config` argument.
 
-* --s3
-* --s3-bucket _the name of the S3 bucket you're uploading to_
-* --s3-prefix _the name of any additional sub-directories inside the S3 bucket where files should be written (optional)_
-* --s3-credentials _the path your AWS S3 credentials as described in this [handy blog post](http://blogs.aws.amazon.com/security/post/Tx3D6U6WSFGOK2H/A-New-and-Standardized-Way-to-Manage-Credentials-in-the-AWS-SDKs) (optional)_
+Here's a sample config file:
+
+```
+[post-push]
+s3=_(boolean) copy updated files to S3_
+s3_bucket=_(string) the name of the S3 bucket you're uploading to_
+s3_prefix=_(string) the name of any additional sub-directories inside the S3 bucket where files should be written (optional)_
+s3_credentials=(string) _the path your AWS S3 credentials as described in this [handy blog post](http://blogs.aws.amazon.com/security/post/Tx3D6U6WSFGOK2H/A-New-and-Standardized-Way-to-Manage-Credentials-in-the-AWS-SDKs), optional_
+es=_(boolean) index updated files in Elasticsearch_
+es_host=_(string) the host of the Elasticsearch endpoint you want to index WOF documents in_
+es_port=_(int) the port of the Elasticsearch endpoint you want to index WOF documents in_
+slack=_(boolean) send a message to a Slack channel (using the WOF fork of slackcat) once all the transfers are complete, optional_
+slack_config=_(string) the path to your slackcat config file, optional_
+bundle=_(boolean) generate new bundles for updated files_
+bundle_dest=_(string) where to store bundles, locally_
+```
 
 For example
-
-```
-/usr/local/mapzen/git-whosonfirst-data/hooks/post-push --s3 --s3-bucket whosonfirst.mapzen.com --s3-prefix data --s3-credentials ~/.aws/credentials
-```
-
-The default `post-push` hook implements transfers to S3 using the [py-mapzen-whosonfirst-aws](/usr/local/mapzen/git-whosonfirst-data/hooks/post-push) library and copies files over synchronously. Which is likely to be slow and cumbersome if you're commiting lots and lots of files.
-
-### post-push-async
-
-#### Did we mention it's complicated?
-
-In order to speed things up and not make you sit there waiting for a whole bunch of files to be transferred to S3 before you can do anymore work there is also `post-push-async` hook. This uses the [go-whosonfirst-s3](https://github.com/whosonfirst/go-whosonfirst-s3) package to transfer files in a background process. Like the `post-push` hook described above you will need to pass a few extra arguments specific to your setup to make it all work. These are:
-
-##### S3 (uploading)
-
-* --s3
-* --s3-bucket _the name of the S3 bucket you're uploading to_
-* --s3-prefix _the name of any additional sub-directories inside the S3 bucket where files should be written (optional)_
-* --s3-credentials _the path your AWS S3 credentials as described in this [handy blog post](http://blogs.aws.amazon.com/security/post/Tx3D6U6WSFGOK2H/A-New-and-Standardized-Way-to-Manage-Credentials-in-the-AWS-SDKs) (optional)_
-
-##### Elasticsearch (indexing)
-
-* --es
-* --es-host _the host of the Elasticsearch endpoint you want to index WOF documents in (default is localhost)_
-* --es-port _the port of the Elasticsearch endpoint you want to index WOF documents in (default is 9200)_
-
-##### Slack (notifications when things are done)
-
-* --slack _send a message to a Slack channel (using the WOF fork of slackcat) once all the transfers are complete (optional)_
-* --slack-config _the path to your slackcat config file (optional)_
-
-For example
-
-```
-/usr/local/mapzen/git-whosonfirst-data/hooks/post-push-async --s3 --s3-bucket whosonfirst.mapzen.com --s3-prefix data --s3-credentials ~/.aws/credentials --slack --slack-config ~/.slackcat.conf 
-```
 
 When the hooks is run you might see something like this printed to STDOUT:
 
@@ -131,12 +107,11 @@ And then in (some number of seconds) the following woudl get written to STDOUT (
 
 #### Don't forget
 
-Just like the `post-push` hook/alias you'll need to tell Git about the `post-push-async` hook like this:
+You'll need to tell Git about the `post-push-async` hook like this:
 
 ```
-$> git config alias.xpush '!git push $1 $2 && /usr/local/mapzen/git-whosonfirst-data/hooks/post-push <options>'
+$> git config alias.xpush '!git push $1 $2 && /usr/local/mapzen/git-whosonfirst-data/hooks/post-push'
 ```
-
 
 ### Example
 

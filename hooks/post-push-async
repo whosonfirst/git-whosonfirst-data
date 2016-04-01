@@ -176,8 +176,11 @@ if __name__ == '__main__':
    do_s3 = cfg.getboolean('post-push', 's3')
 
    s3_bucket = cfg.get('post-push', 's3_bucket')
-   s3_prefix = cfg.get('post-push', 's3_prefix')
+   s3_prefix = None
    s3_credentials = None
+
+   if cfg.has_option('post-push', 's3_prefix'):
+      s3_prefix = cfg.get('post-push', 's3_prefix')
 
    if cfg.has_option('post-push', 's3_credentials'):
       s3_crendentials = cfg.get('post-push', 's3_credentials')
@@ -249,6 +252,7 @@ if __name__ == '__main__':
    if do_es:
 
       es_host = cfg.get('post-push', 'es_host')
+      es_port = cfg.getint('post-push', 'es_port')
 
       fh = tempfile.NamedTemporaryFile(delete=False)
       tmpfile = fh.name
@@ -259,8 +263,10 @@ if __name__ == '__main__':
       cmd = [
          index_tool,
          "--host", es_host,
+         "--port", es_port,
          "--tidy"
       ]
+
 
       if do_slack:
          cmd.extend([
