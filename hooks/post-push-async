@@ -28,6 +28,7 @@ if __name__ == '__main__':
 
    opt_parser.add_option('-c', '--config', dest='config', action='store', default=None, help='')
 
+   """
    opt_parser.add_option('--s3', dest='s3', action='store_true', default=False, help='Sync files to S3 (default is False)')
    opt_parser.add_option('--s3-bucket', dest='s3_bucket', action='store', default=None, help='The name of the S3 bucket to sync files to')
    opt_parser.add_option('--s3-prefix', dest='s3_prefix', action='store', default=None, help='The name of the prefix to sync files in the S3 bucket to')
@@ -42,6 +43,7 @@ if __name__ == '__main__':
 
    opt_parser.add_option('--slack', dest='slack', action='store_true', default=False, help='Send a message to a Slack channel (using the WOF fork of slackcat) once all the transfers are complete')
    opt_parser.add_option('--slack-config', dest='slack_config', action='store', default=None, help='The path to your slackcat config file')
+   """
 
    opt_parser.add_option('--start-commit', dest='start_commit', action='store', default=None, help='The starting commit hash for determining changes (default is HEAD -2)')
    opt_parser.add_option('--stop-commit', dest='stop_commit', action='store', default=None, help='The ending commit hash for determining changes (default is HEAD -1)')
@@ -69,10 +71,18 @@ if __name__ == '__main__':
 
    # Can has config?
 
-   if options.config:
+   if not options.config:
+      logging.error("Missing config file!")
+      sys.exit(1)
 
-      cfg = ConfigParser.ConfigParser()
-      cfg.read(options.config)
+   path_config = os.path.abspath(options.config)
+
+   if not os.path.exists(path_config):
+      logging.error("INVISIBLE CONFIG FILE")
+      sys.exit(1)
+
+   cfg = ConfigParser.ConfigParser()
+   cfg.read(path_config)
 
    # What do we have to work with...
 
@@ -131,10 +141,6 @@ if __name__ == '__main__':
       logging.info("nothing in this commit that we need to apply post-push-async hooks to")
       sys.exit(0)
 
-   bucket = options.s3_bucket
-   prefix = options.s3_prefix
-   credentials = options.s3_credentials
-   
    whoami = os.path.abspath(sys.argv[0])
    hooks = os.path.dirname(whoami)
    hooks_root = os.path.dirname(hooks)
@@ -157,7 +163,20 @@ if __name__ == '__main__':
    clone_tool = os.path.join(bin, "wof-clone-metafiles")		# go-whosonfirst-clone
    bundle_tool = os.path.join(bin, "wof-bundle-placetypes")		# py-mapzen-whosonfirst-bundles
 
-   if options.s3:
+   do_slack = cfg.getboolean('post-push', 'slack')
+   slack_config = None
+
+   if do_slack and cfg.has_option('post-push', 'slack_config'):
+      slack_config = cfg.get('post-push', 'slack_config')
+      slack_config = os.path.abspath(slack_config)
+
+   do_s3 = cfg.getboolean('post-push', 's3')
+
+   s3_bucket = cfg.get('post-push', 's3_bucket')
+   s3_prefix = cfg.get('post-push', 's3_prefix')
+   s3_credentials = cfg.get('post-push', 's3_credentials')
+   
+   if do_s3:
 
       fh = tempfile.NamedTemporaryFile(delete=False)
       tmpfile = fh.name
@@ -165,32 +184,30 @@ if __name__ == '__main__':
       fh.write("\n".join(files))
       fh.close()
 
-      #
-
       cmd = [
          sync_tool,
-         "-bucket", bucket,
+         "-bucket", s3_bucket,
          "-root", data,
          "-processes", "200",
          "-file-list", tmpfile,
          "-tidy"	# this will unlink tmpfile
       ]
       
-      if prefix:
-         cmd.extend(["-prefix", prefix])
+      if s3_prefix:
+         cmd.extend(["-prefix", s3_prefix])
 
-      if credentials:
-         cmd.extend(["-credentials", credentials])
+      if s3_credentials:
+         cmd.extend(["-credentials", s3_credentials])
 
-      if options.slack:
+      if do_slack:
          cmd.extend([
             "-slack"
          ])
 
-      if options.slack_config:
+      if slack_config:
          cmd.extend([
             "-slack-config",
-            options.slack_config,
+            slack_config,
          ])
 
       str_cmd = " ".join(cmd)
@@ -221,7 +238,11 @@ if __name__ == '__main__':
       # And then in 15.623659793s the following gets written to STDOUT (and to slack if so configured):
       # [wof-sync-files] 23:16:44.105606 [status] Scheduled 733 Completed 733 Success 634 Error 0 Skipped 99 Time 15.623659793s
 
-   if options.es:
+   do_es = cfg.getboolean('post-push', 'es')
+
+   if do_es:
+
+      es_host = cfg.get('post-push', 'es_host')
 
       fh = tempfile.NamedTemporaryFile(delete=False)
       tmpfile = fh.name
@@ -231,19 +252,19 @@ if __name__ == '__main__':
 
       cmd = [
          index_tool,
-         "--host", options.es_host,
+         "--host", es_host,
          "--tidy"
       ]
 
-      if options.slack:
+      if do_slack:
          cmd.extend([
             "--slack"
          ])
 
-      if options.slack_config:
+      if slack_config:
          cmd.extend([
             "--slack-config",
-            options.slack_config,
+            slack_config,
          ])
 
       cmd.append(tmpfile)
@@ -258,9 +279,12 @@ if __name__ == '__main__':
 
    # generate new bundles
 
-   if options.bundle:
+   do_bundles = cfg.getboolean('post-push', 'bundle')
 
-      bundle_dest = os.path.abspath(options.bundle_dest)
+   if do_bundles:
+
+      bundle_dest = cfg.get('post-push', 'bundle_dest')
+      bundle_dest = os.path.abspath(bundle_dest)
       
       cmd = [
          bundle_tool, 
@@ -268,11 +292,11 @@ if __name__ == '__main__':
          "-d", bundle_dest,
          "-S", "latest",
          "--wof-clone", clone_tool,
-         "--aws-bucket", bucket,
+         "--aws-bucket", s3_bucket,
       ]
 
-      if credentials:
-         cmd.extend(["--aws-creds", credentials])
+      if s3_credentials:
+         cmd.extend(["--aws-creds", s3_credentials])
 
       str_cmd = " ".join(cmd)
       logging.info("getting ready to %s" % str_cmd)
