@@ -43,7 +43,7 @@ We don't define any specific `pre-push` hooks at this point because [git-lfs](ht
 
 ### post-push-async
 
-This is where we attempt to upload the updated WOF documents to a Mapzen / Who's On First (AWS) S3 bucket.
+This is where we attempt to upload the updated WOF documents to a Mapzen / Who's On First (AWS) S3 bucket, index things in Elasticsearch, regenerate bundles and whatever else we dream up next. The important part is that these all happen asynchronously and the `post-push-async` command doesn't wait for any single command to complete.
 
 #### It's complicated
 
@@ -77,7 +77,7 @@ es=_(boolean) index updated files in Elasticsearch_
 es_host=_(string) the host of the Elasticsearch endpoint you want to index WOF documents in_
 es_port=_(int) the port of the Elasticsearch endpoint you want to index WOF documents in_
 slack=_(boolean) send a message to a Slack channel (using the WOF fork of slackcat) once all the transfers are complete, optional_
-slack_config=_(string) the path to your slackcat config file, optional_
+slack_config=_(string) the path to your slackcat config file_
 bundle=_(boolean) generate new bundles for updated files_
 bundle_dest=_(string) where to store bundles, locally_
 ```
@@ -111,6 +111,14 @@ You'll need to tell Git about the `post-push-async` hook like this:
 
 ```
 $> git config alias.xpush '!git push $1 $2 && /usr/local/mapzen/git-whosonfirst-data/hooks/post-push'
+```
+
+### But wait... There's more!!!
+
+All of the Git hooks (including `post-push-async`) can be told to process changes from a custom `--start-commit` and `--end-commit` hash. This is useful for processing changes from pull requests that pre-date `HEAD`. For example:
+
+```
+./.git/hooks/post-push-async --start-commit 3e55e3031ae8086fb88c2db8b79027e25c42ee8a
 ```
 
 ### Example

@@ -6,5 +6,6 @@ es=
 es_host=
 es_port=
 slack=
+slack_config=
 bundle=
 bundle_dest=
