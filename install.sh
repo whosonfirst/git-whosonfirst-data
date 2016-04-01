@@ -58,10 +58,16 @@ git config --add http.postBuffer 52428800
 
 # this is too fiddly to try and set dynamically but we should endeavour to
 # keep the example below up to date with reality (20160128/thisisaaronland)
-# git config alias.xpush '!git push $1 $2 && /YOUR/PATH/TO/git-whosonfirst-data/hooks/post-push-async --s3 --s3-bucket YOUR-S3-BUCKET --s3-prefix YOUR-S3_PREFIX --es --es-host YOUR.ELASTICSEARCH.HOST --slack --slack-config /PATH/TO/YOU/.slackcat.conf --verbose --bundle --bundle-dest /PATH/TO/YOU/whosonfirst-bundles/'
+
+if [ -f ${HOOKS}/hooks.cfg ]
+then
+    echo "There is already a hooks.cfg file in place"
+else 
+    cp ${HOOKS}/hooks.cfg.example ${HOOKS}/hooks.cfg
+    echo "created ${HOOKS}/hooks.cfg but YOU WILL NEED TO UPDATE IT with installation specific information; see documentation for details"
+fi
+
+git config alias.xpush '!git push $1 $2 && ${HOOK}/post-push-async'
 
 cd -
-
-
-echo "post-push aliases have been installed (in ${GITHOOKS}) not NOT ADDED to .git config file - you will need to do that yourself; see documentation for details"
 exit 0

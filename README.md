@@ -41,7 +41,7 @@ This is the part that will append the updated files (exported WOF documents and 
 
 We don't define any specific `pre-push` hooks at this point because [git-lfs](https://github.com/whosonfirst/whosonfirst-data/#git-and-large-files) already installs one and I haven't decided how best we should play with it.
 
-### post-push
+### post-push-async
 
 This is where we attempt to upload the updated WOF documents to a Mapzen / Who's On First (AWS) S3 bucket.
 
