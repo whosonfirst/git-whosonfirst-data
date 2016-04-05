@@ -27,6 +27,7 @@ if __name__ == '__main__':
    opt_parser = optparse.OptionParser()
 
    opt_parser.add_option('-c', '--config', dest='config', action='store', default=None, help='')
+   opt_parser.add_option('-f', '--force', dest='force', action='store_true', default=False, help='')
 
    """
    opt_parser.add_option('--s3', dest='s3', action='store_true', default=False, help='Sync files to S3 (default is False)')
@@ -147,7 +148,7 @@ if __name__ == '__main__':
       abs_path = os.path.abspath(rel_path)
       files.append(abs_path)
 
-   if len(files) == 0:
+   if len(files) == 0 and not options.force:
       logging.info("nothing in this commit that we need to apply post-push-async hooks to")
       sys.exit(0)
 
