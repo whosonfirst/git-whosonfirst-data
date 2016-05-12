@@ -64,6 +64,7 @@ if __name__ == '__main__':
    # - clone to ES (maybe?)
 
    for fname in diff:
+      logging.info("%s has changed" % fname)
       fh.write("%s\n" % fname)
 
    fh.close()
