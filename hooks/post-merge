@@ -1,0 +1,83 @@
+#!/usr/bin/env python
+# -*-python-*-
+
+# Please to be reading this before you start making changes here:
+# https://github.com/whosonfirst/git-whosonfirst-data#caveats
+
+import os
+import sys
+import logging
+
+import subprocess
+
+import mapzen.whosonfirst.utils
+import mapzen.whosonfirst.git
+
+logging.basicConfig(level=logging.INFO)
+
+if __name__ == '__main__':
+
+   import optparse
+   opt_parser = optparse.OptionParser()
+
+   opt_parser.add_option('--start-commit', dest='start_commit', action='store', default=None, help='The starting commit hash for determining changes (default is HEAD -2)')
+   opt_parser.add_option('--stop-commit', dest='stop_commit', action='store', default=None, help='The ending commit hash for determining changes (default is HEAD -1)')
+
+   opt_parser.add_option('-v', '--verbose', dest='verbose', action='store_true', default=True, help='Be chatty (default is false)')
+   
+   options, args = opt_parser.parse_args()
+
+   if options.verbose:	
+      logging.basicConfig(level=logging.DEBUG)
+   else:
+      logging.basicConfig(level=logging.INFO)
+
+   # What do we have to work with - what we are doing now does not
+   # work as expected. Specifically we are invoking get_previous_hash
+   # to determine the start_commit which ends up being '542164d' and
+   # not '1a668be' in the example below. That being said... I am not
+   # sure how (or where) to get the "previous" hash for this copy of
+   # the repository before the update was applied...
+
+   """
+   git pull origin master
+   remote: Counting objects: 5, done.
+   remote: Compressing objects: 100% (2/2), done.
+   remote: Total 5 (delta 1), reused 4 (delta 1), pack-reused 0
+   Unpacking objects: 100% (5/5), done.
+   From github.com:whosonfirst/this-is-a-test
+   * branch            master     -> FETCH_HEAD
+   1a668be..da6764a  master     -> origin/master
+   Updating 1a668be..da6764a
+   Fast-forward
+   pr2 | 1 +
+   pr4 | 1 +
+   2 files changed, 2 insertions(+)
+   create mode 100644 pr4
+   INFO:root:invoking git-whosonfirst-mapzen post-merge hooks for 542164d7dd66e5aa24439b2663a8eacb2e882243 - da6764ac5e60b411c6d88237721f7468d311a934
+   """
+
+   start_commit = options.start_commit
+   stop_commit = options.stop_commit
+
+   if not start_commit:
+      start_commit = mapzen.whosonfirst.git.get_previous_hash()
+
+   if not stop_commit:
+      stop_commit = mapzen.whosonfirst.git.get_current_hash()
+
+   logging.info("invoking git-whosonfirst-mapzen post-merge hooks for %s - %s" % (start_commit, stop_commit))
+
+   diff = mapzen.whosonfirst.git.get_diff(start_commit, stop_commit)
+
+   # if necessary - for example if we get changes from a PR from someone who
+   # doesn't have all the hoohah to generate ancillary files then we want to
+   # - generate meta files
+   # - trigger bundle making
+   # - clone to s3
+   # - clone to ES (maybe?)
+
+   for fname in diff:
+      logging.info("%s is different" % fname)
+
+   sys.exit(0)
