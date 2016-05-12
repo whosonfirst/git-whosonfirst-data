@@ -61,7 +61,11 @@ if __name__ == '__main__':
    stop_commit = options.stop_commit
 
    if not start_commit:
-      start_commit = mapzen.whosonfirst.git.get_previous_hash()
+
+      # skip things we've merged and start from the last known commit here - maybe?
+      # see also: https://github.com/whosonfirst/git-whosonfirst-data/issues/11
+
+      start_commit = mapzen.whosonfirst.git.get_previous_hash(merges=False)
 
    if not stop_commit:
       stop_commit = mapzen.whosonfirst.git.get_current_hash()
