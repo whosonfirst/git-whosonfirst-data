@@ -113,7 +113,7 @@ $> cat .changed-* | sort | uniq | grep geojson | /path/to/git-whosonfirst-data/b
 
 INFO:root:launched with PID 2553
 [wof-sync-files] 22:19:26.685129 [info] creating a new Sync thing-y with 200 processes
-acope@workhorse-1:/usr/local/data/whosonfirst-data$ [wof-sync-files] 22:19:26.694070 [info] Scheduled 0 Completed 0 Success 0 Error 0 Skipped 0 Retried 0 Goroutines 207 Time 48.113
+[wof-sync-files] 22:19:26.694070 [info] Scheduled 0 Completed 0 Success 0 Error 0 Skipped 0 Retried 0 Goroutines 207 Time 48.113
 µs
 ```
 
@@ -136,7 +136,7 @@ $> cat .changed-* | sort | uniq | grep geojson | /path/to/git-whosonfirst-data/b
 
 INFO:root:getting ready to /path/to/git-whosonfirst-data/bin/linux/wof-es-index-filelist --host 9.9.9.9 --port 9200 --tidy /tmp/tmpzjGb3B
 INFO:root:launched with PID 1488
-acope@workhorse-1:/usr/local/data/whosonfirst-data$ WARNING:root:remove tag 'ne:fips_10_' because ES suffers from E_EXCESSIVE_CLEVERNESS
+WARNING:root:remove tag 'ne:fips_10_' because ES suffers from E_EXCESSIVE_CLEVERNESS
 WARNING:root:remove tag 'ne:gdp_md_est' because ES suffers from E_EXCESSIVE_CLEVERNESS
 WARNING:root:remove tag 'ne:geou_dif' because ES suffers from E_EXCESSIVE_CLEVERNESS
 WARNING:root:remove tag 'ne:pop_est' because ES suffers from E_EXCESSIVE_CLEVERNESS
@@ -165,7 +165,7 @@ $> cat .changed-* | sort | uniq | grep geojson | /path/to/git-whosonfirst-data/b
 INFO:root:getting ready to /path/to/git-whosonfirst-data/bin/linux/wof-bundle-placetypes -s /usr/local/data/whosonfirst-data -d /usr/local/data/whosonfirst-bundles -S lat\
 est --wof-clone /path/to/git-whosonfirst-data/bin/linux/wof-clone-metafiles --aws-bucket whosonfirst.mapzen.com
 INFO:root:launched with PID 3628
-acope@workhorse-1:/usr/local/data/whosonfirst-data$ INFO:root:bundle dependency (latest)
+/usr/local/data/whosonfirst-data$ INFO:root:bundle dependency (latest)
 INFO:root:['sha1sum', '/usr/local/data/whosonfirst-data/meta/wof-dependency-latest.csv']
 INFO:root:nothing has changed, skipping wof-dependency-latest-bundle
 INFO:root:bundle metroarea (latest)
@@ -197,7 +197,7 @@ INFO:root:mkdir /usr/local/data/whosonfirst-bundles/wof-localadmin-latest-bundle
 INFO:root:['/path/to/git-whosonfirst-data/bin/linux/wof-clone-metafiles', '-source', 'file:///usr/local/data/whosonfirst-data/data', '-dest', '/usr/local/data/whosonfirst-bundles/wof-localadmin-latest-bundle/data', '/usr/local/data/whosonfirst-data/meta/wof-localadmin-latest.csv']
 [wof-clone-metafiles] 22:47:39.685526 [info] scheduled: 1442 completed: 1433 success: 1433 error: 0 skipped: 0 to retry: 0 goroutines: 50 time: 999.659469ms
 
-acope@workhorse-1:/usr/local/data/whosonfirst-data$ [wof-clone-metafiles] 22:47:40.685731 [info] scheduled: 3393 completed: 3385 success: 3385 error: 0 skipped: 0 to retry: 0 gorou
+[wof-clone-metafiles] 22:47:40.685731 [info] scheduled: 3393 completed: 3385 success: 3385 error: 0 skipped: 0 to retry: 0 gorou
 tines: 48 time: 1.999876812s
 [wof-clone-metafiles] 22:47:41.685901 [info] scheduled: 5240 completed: 5233 success: 5233 error: 0 skipped: 0 to retry: 0 goroutines: 49 time: 3.000047008s
 [wof-clone-metafiles] 22:47:42.686067 [info] scheduled: 6925 completed: 6909 success: 6909 error: 0 skipped: 0 to retry: 0 goroutines: 59 time: 4.000210415s
