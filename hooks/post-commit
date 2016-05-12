@@ -115,7 +115,7 @@ if __name__ == '__main__':
          # interview question (good albeit cruel) but isn't very useful
          # for actually getting any work done... (20151112/thisisaaronland)
 
-         cmd = ["git", "commit", "--amend", "-C", start_commit, "--no-verify"]
+         cmd = ["git", "commit", "--amend", "-C", stop_commit, "--no-verify"]
          logging.debug(" ".join(cmd))
 
          out = subprocess.check_output(cmd)
