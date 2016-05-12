@@ -8,7 +8,7 @@ import subprocess
 import tempfile
 
 """
-$> cat .changed-* | sort | uniq | grep geojson | /path/to/git-whosonfirst-data/bin/wof/es.py -r `pwd` -c /path/to/git-whosonfirst-data/hooks/hooks.cfg
+$> cat .changed-* | sort | uniq | grep geojson | /path/to/git-whosonfirst-data/bin/wof/es.py -r `pwd` -c /path/to/git-whosonfirst-data/hooks/hooks.cfg -S /path/to/wof-es-index-filelist
 INFO:root:getting ready to /path/to/git-whosonfirst-data/bin/linux/wof-es-index-filelist --host 9.9.9.9 --port 9200 --tidy /tmp/tmpzjGb3B
 INFO:root:launched with PID 1488
 acope@workhorse-1:/usr/local/data/whosonfirst-data$ WARNING:root:remove tag 'ne:fips_10_' because ES suffers from E_EXCESSIVE_CLEVERNESS
@@ -80,7 +80,7 @@ if __name__ == '__main__':
         
     opt_parser.add_option('-r', '--repo', dest='repo', action='store', default=None, help='')
     opt_parser.add_option('-c', '--config', dest='config', action='store', default=None, help='')
-    opt_parser.add_option('-t', '--sync-tool', dest='sync_tool', action='store', default=None, help='')
+    opt_parser.add_option('-S', '--sync-tool', dest='sync_tool', action='store', default=None, help='')
 
     opt_parser.add_option('-v', '--verbose', dest='verbose', action='store_true', default=False, help='Be chatty (default is false)')
 

@@ -7,6 +7,14 @@ import logging
 import subprocess
 import tempfile
 
+"""
+$> cat .changed-* | sort | uniq | grep geojson | /path/to/git-whosonfirst-data/bin/wof/s3.py -r `pwd` -c /path/to/git-whosonfirst-data/hooks/hooks.cfg -S /path/to/wof-sync-files
+INFO:root:launched with PID 2553
+[wof-sync-files] 22:19:26.685129 [info] creating a new Sync thing-y with 200 processes
+acope@workhorse-1:/usr/local/data/whosonfirst-data$ [wof-sync-files] 22:19:26.694070 [info] Scheduled 0 Completed 0 Success 0 Error 0 Skipped 0 Retried 0 Goroutines 207 Time 48.113
+µs
+"""
+
 def sync_files(root, files, sync_tool, cfg):
 
     data = os.path.join(root, "data")
@@ -75,7 +83,7 @@ if __name__ == '__main__':
     
     opt_parser.add_option('-r', '--repo', dest='repo', action='store', default=None, help='')
     opt_parser.add_option('-c', '--config', dest='config', action='store', default=None, help='')
-    opt_parser.add_option('-t', '--sync-tool', dest='sync_tool', action='store', default=None, help='')
+    opt_parser.add_option('-S', '--sync-tool', dest='sync_tool', action='store', default=None, help='')
 
     opt_parser.add_option('-v', '--verbose', dest='verbose', action='store_true', default=False, help='Be chatty (default is false)')
 
