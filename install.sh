@@ -31,7 +31,7 @@ fi
 
 # Install the hooks
 
-for HOOK in "pre-commit" "post-commit" "post-push-async"
+for HOOK in "pre-commit" "post-commit" "post-merge" "post-push-async"
 do
 
     if [ -f ${GITHOOKS}/${HOOK} ]
@@ -49,12 +49,6 @@ do
     echo "symlink ${HOOKS}/${HOOK} to ${GITHOOKS}/${HOOK}"
     ln -s ${HOOKS}/${HOOK}  ${GITHOOKS}/${HOOK}
 done
-
-# Add some default configs
-# https://git-scm.com/docs/git-config
-
-cd ${WOFDATA}
-git config --add http.postBuffer 52428800
 
 # this is too fiddly to try and set dynamically but we should endeavour to
 # keep the example below up to date with reality (20160128/thisisaaronland)
