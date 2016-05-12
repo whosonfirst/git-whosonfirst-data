@@ -104,46 +104,6 @@ if __name__ == '__main__':
    data = os.path.join(root, "data")
    meta = os.path.join(root, "meta")
 
-   # deprecated... maybe? (20160331/thisisaaronland)
-
-   """
-   modified = re.compile('^[MA]\s+(?P<name>.*)$')
-
-   # I dunno ... still trying to work out how to make this all invoked from
-   # a specific commit hash as well as just the default "most recent" work
-   # (20160326/thisisaaronland)
-
-   if commit_hash == "HEAD":
-      cmd = ["git", "status", "--porcelain"]
-   else:
-      cmd  = ["git", "show", "--pretty=format:", "--name-only", commit_hash]
-
-   logging.debug(" ".join(cmd))
-
-   out = subprocess.check_output(cmd)
-
-   # I dunno ... still trying to work out how to make this all invoked from
-   # a specific commit hash as well as just the default "most recent" work
-   # (20160326/thisisaaronland)
-
-   possible = []
-
-   for line in out.splitlines():
-
-      if commit_hash == "HEAD":
-
-         match = modified.match(line)
-
-         if match:
-            fname = match.group('name')
-            possible.append(fname)
-
-      else:
-         possible.append(line)
-   """
-
-   #
-
    files = []
 
    for fname in diff:

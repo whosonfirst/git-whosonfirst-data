@@ -70,4 +70,6 @@ if __name__ == '__main__':
    fh.close()
    logging.info("created %s with the list of files that have been updated" % dotchanged)
 
+   # cat .changed-* | sort | uniq | grep geojson > .process
+
    sys.exit(0)
