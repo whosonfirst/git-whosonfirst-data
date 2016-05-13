@@ -34,52 +34,6 @@ if __name__ == '__main__':
    else:
       logging.basicConfig(level=logging.INFO)
 
-   # start of boilerplate-pydeps
-   # ---------------------------
-
-   import pkg_resources
-   import requests
-	
-   # Some basic sanity checking to ensure that people are running the most recent
-   # version of the py-mz-wof libraries (20160127/thisisaaronland)
-
-   pymz = pkg_resources.get_distribution("mapzen.whosonfirst").version
-   pymz = pymz.rstrip("-")
-
-   current = None
-
-   try:
-      logging.info("I am going to try and see whether you are using the most recent version of py-mapzen-whosonfirst...")
-
-      rsp = requests.get("https://raw.githubusercontent.com/whosonfirst/py-mapzen-whosonfirst/master/VERSION")
-      current = rsp.content
-      current = current.strip()
-
-   except Exception, e:
-      logging.warning("Failed to determine ACTUAL current version of py-mapzen-whosonfirst, because %s (setting current to %s for now but don't be surprised if HILARITY ensues...)" % (e, pymz))
-      current = pymz
-
-   if pymz != current:
-      logging.warning("You are running version %s of py-mapzen-whosonfirst but the current version is %s - you should update because HILARITY may ensue if you don't" % (pymz, current))
-
-   # -------------------------
-   # end of boilerplate-pydeps
-      
-   # start of boilerplate-init
-   # -------------------------
-
-   # who's on first... har har har... sad trombone - remember that unlike
-   # the other git hooks which are meant to be copied over to the wof-data
-   # .git/hooks repository this one is stored somewhere and meant to be
-   # invoked *from* the wof-data repository (20151113/thisisaaronland)
-
-   root = os.getcwd()
-   base = os.path.basename(root)
-
-   if not base.startswith("whosonfirst-data"):
-      logging.error("I don't think I am being invoked in the whosonfirst-data-* repository... RUNNING AWAY SCARED")
-      sys.exit(1)
-
    # In case some one is running this straight out of the
    # .git/hooks folder
 
@@ -87,18 +41,6 @@ if __name__ == '__main__':
 
    if os.path.islink(whoami):
       whoami = os.path.realpath(whoami)
-
-   if not options.config:
-
-      hooks = os.path.dirname(whoami)
-      path_config = os.path.join(hooks, 'hooks.cfg')
-
-   else:
-      path_config = os.path.abspath(options.config)
-
-   if not os.path.exists(path_config):
-      logging.error("INVISIBLE CONFIG FILE %s" % path_config)
-      sys.exit(1)
 
    hooks = os.path.dirname(whoami)
    root = os.path.dirname(hooks)
@@ -109,22 +51,14 @@ if __name__ == '__main__':
    logging.info("append %s to path" % lib)
    sys.path.append(lib)
 
-   whatami = sys.platform
+   import wof.common
+   import wof.validate
+   import wof.meta
+   import wof.concordances
 
-   if whatami == 'darwin':
-      bin = os.path.join(bin, "osx")
-   elif whatami == 'win32':
-      bin = os.path.join(bin, "windows")
-   elif whatami == 'linux' or whatami == 'linux2':	# seriously... I have no idea what linux2 is...
-      bin = os.path.join(bin, "linux")        
-   else:
-      logging.error("unknown or unsupported platform: %s" % whatami)
-      sys.exit(1)
+   wof.common.check_pylibs()
 
-   # -----------------------
-   # end of boilerplate-init
-
-   # What do we have to work with...
+   wof.common.ensure_is_wofdata()
 
    start_commit = options.start_commit
    stop_commit = options.stop_commit
@@ -137,43 +71,18 @@ if __name__ == '__main__':
 
    logging.info("invoking git-whosonfirst-mapzen post-push hooks for %s - %s" % (start_commit, stop_commit))
 
-   # start of boilerplate-getfiles
-   # -----------------------------
-
    diff = mapzen.whosonfirst.git.get_diff(start_commit, stop_commit)
    logging.info("invoking hooks on %s possible files" % len(diff))
 
-   files = []
-
-   for fname in diff:
-
-      parsed = mapzen.whosonfirst.utils.parse_filename(fname)
-
-      if not parsed:
-         continue
-
-      id, suffix = parsed
-
-      if suffix:
-         logging.info("%s has a suffix (%s) so skipping" % (fname, suffix))
-         continue
-            
-      files.append(fname)
-
-   # -----------------------------
-   # end of boilerplate-getfiles
+   files = wof.common.filter_for_wof_documents(diff)
 
    if len(files) == 0:
       logging.info("nothing in this commit that we need to apply pre-commit hooks to")
       sys.exit(0)
 
-   import wof.validate
+   wof.common.ensure_valid_wof_documents(files)
 
-   if not wof.validate.validate_files(repo, files):
-      logging.error("one or more files failed validation")
-      sys.exit(1)
-
-   #
+   # PLEASE WRITE ME
 
    updated = []
    recommit = []
@@ -186,36 +95,8 @@ if __name__ == '__main__':
       updated.append(abs_path)
       recommit.append(rel_path)
 
-   # these are used to extend 'modified' and 'created' below
-
-   modified = []
-   created = []
-
-   import wof.meta
-   import wof.concordances
-
-   _modified, _created = wof.meta.update_metafiles(base, updated)
-
-   for path in _modified:
-      path = path.replace(base + "/", "")
-      modified.append(path)
-
-   for path in _created:
-      path = path.replace(base + "/", "")
-      created.append(path)
-
-   _modified, _created = wof.concordances.update_concordances(base, updated)
-
-   for path in _modified:
-      path = path.replace(base + "/", "")
-      modified.append(path)
+   modified, created = wof.common.update_ancillary_files(base, updated)
       
-   for path in _created:
-      path = path.replace(base + "/", "")
-      created.append(path)
-      
-   # phew!
-
    recommit.extend(modified)
    recommit.extend(created)
 
@@ -230,11 +111,14 @@ if __name__ == '__main__':
 
    if len(recommit):
 
-      dotcommit = os.path.join(root, ".commit")
+      dotcommit = os.path.join(base, ".commit")
       logging.info("writing %s to disk to be processed by the post-commit hook" % dotcommit)
 
       fh = open(dotcommit, "w")
       fh.write("\n".join(recommit))
       fh.close()
+
+   logging.error("YAHOO SAYS NO")
+   sys.exit(1)
 
    sys.exit(0)
