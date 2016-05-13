@@ -66,7 +66,7 @@ if __name__ == '__main__':
    # see also: notes in pre-commit
    # see also-er: https://stackoverflow.com/questions/3284292/can-a-git-hook-automatically-add-files-to-the-commit
 
-   dotcommit = os.path.join(root, ".commit")
+   dotcommit = os.path.join(base, ".commit")
 
    if os.path.exists(dotcommit):
 
@@ -79,7 +79,7 @@ if __name__ == '__main__':
       for rel_path in fh.readlines():
 
          rel_path = rel_path.strip()
-         abs_path = os.path.join(root, rel_path)
+         abs_path = os.path.join(base, rel_path)
 
          if not os.path.exists(abs_path):
             continue
@@ -119,11 +119,9 @@ if __name__ == '__main__':
          logging.debug(" ".join(cmd))
 
          out = subprocess.check_output(cmd)
-
-         logging.info(" ".join(cmd))
          logging.info(out)
 
-   # not a bug - we just haven't defined anything beyond this stage
-   # see post-push-async for hooks to push to S3 etc (20151113/thisisaaronland)
+   # see also: post-push-async for handling commits
+   # see also: post-merge for handling PRs and merges
 
    sys.exit(0)

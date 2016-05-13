@@ -1,0 +1,30 @@
+   # start of boilerplate-pydeps
+   # ---------------------------
+
+   import pkg_resources
+   import requests
+	
+   # Some basic sanity checking to ensure that people are running the most recent
+   # version of the py-mz-wof libraries (20160127/thisisaaronland)
+
+   pymz = pkg_resources.get_distribution("mapzen.whosonfirst").version
+   pymz = pymz.rstrip("-")
+
+   current = None
+
+   try:
+      logging.info("I am going to try and see whether you are using the most recent version of py-mapzen-whosonfirst...")
+
+      rsp = requests.get("https://raw.githubusercontent.com/whosonfirst/py-mapzen-whosonfirst/master/VERSION")
+      current = rsp.content
+      current = current.strip()
+
+   except Exception, e:
+      logging.warning("Failed to determine ACTUAL current version of py-mapzen-whosonfirst, because %s (setting current to %s for now but don't be surprised if HILARITY ensues...)" % (e, pymz))
+      current = pymz
+
+   if pymz != current:
+      logging.warning("You are running version %s of py-mapzen-whosonfirst but the current version is %s - you should update because HILARITY may ensue if you don't" % (pymz, current))
+
+   # -------------------------
+   # end of boilerplate-pydeps

@@ -34,74 +34,7 @@ if __name__ == '__main__':
    else:
       logging.basicConfig(level=logging.INFO)
 
-   # sudo put me in a library?
 
-   # who's on first... har har har... sad trombone - remember that unlike
-   # the other git hooks which are meant to be copied over to the wof-data
-   # .git/hooks repository this one is stored somewhere and meant to be
-   # invoked *from* the wof-data repository (20151113/thisisaaronland)
-
-   root = os.getcwd()
-   base = os.path.basename(root)
-
-   if not base.startswith("whosonfirst-data"):
-      logging.error("I don't think I am being invoked in the whosonfirst-data-* repository... RUNNING AWAY SCARED")
-      sys.exit(1)
-
-   # end-of sudo put me in a library?
-
-   # sudo put me in a library?
-
-   # In case some one is running this straight out of the
-   # .git/hooks folder
-
-   whoami = os.path.abspath(sys.argv[0])
-
-   if os.path.islink(whoami):
-      whoami = os.path.realpath(whoami)
-
-   # end-of sudo put me in a library?
-
-   # Can has config?
-
-   if not options.config:
-
-      hooks = os.path.dirname(whoami)
-      path_config = os.path.join(hooks, 'hooks.cfg')
-
-   else:
-      path_config = os.path.abspath(options.config)
-
-   if not os.path.exists(path_config):
-      logging.error("INVISIBLE CONFIG FILE %s" % path_config)
-      sys.exit(1)
-
-   #
-
-   hooks = os.path.dirname(whoami)
-   root = os.path.dirname(hooks)
-
-   bin = os.path.join(root, "bin")
-   lib = os.path.join(root, "lib")
-
-   logging.info("append %s to path" % lib)
-   sys.path.append(lib)
-
-   # sudo put me in a library?
-
-   whatami = sys.platform
-
-   if whatami == 'darwin':
-      bin = os.path.join(bin, "osx")
-   elif whatami == 'win32':
-      bin = os.path.join(bin, "windows")
-   elif whatami == 'linux' or whatami == 'linux2':	# seriously... I have no idea what linux2 is...
-      bin = os.path.join(bin, "linux")        
-   else:
-      logging.error("unknown or unsupported platform: %s" % whatami)
-      sys.exit(1)
-
-   # end-of sudo put me in a library?
 
    start_commit = options.start_commit
    stop_commit = options.stop_commit
@@ -165,7 +98,8 @@ if __name__ == '__main__':
    # do something with modified and created here... like commit them, etc.
    # (20160512/thisisaaronland)
 
-   # sudo put me a library?
+   # start of boilerplate-deploy
+   # ---------------------------
 
    sync_tool = os.path.join(bin, "wof-sync-files")			# go-whosonfirst-s3
    index_tool = os.path.join(bin, "wof-es-index-filelist")		# py-mapzen-whosonfirst-search
@@ -188,7 +122,8 @@ if __name__ == '__main__':
       import wof.bundles
       wof.bundles.update_bundles(base, bundle_tool, clone_tool, cfg)
 
-   # end-of sudo put me a library?
+   # -------------------------
+   # end of boilerplate-deploy
 
    logging.info("removing %s" % dotchanged)
    os.unlink(dotchanged)

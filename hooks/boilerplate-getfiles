@@ -1,0 +1,25 @@
+   # start of boilerplate-getfiles
+   # -----------------------------
+
+   diff = mapzen.whosonfirst.git.get_diff(start_commit, stop_commit)
+   logging.info("invoking hooks on %s possible files" % len(diff))
+
+   files = []
+
+   for fname in diff:
+
+      parsed = mapzen.whosonfirst.utils.parse_filename(fname)
+
+      if not parsed:
+         continue
+
+      id, suffix = parsed
+
+      if suffix:
+         logging.info("%s has a suffix (%s) so skipping" % (fname, suffix))
+         continue
+            
+      files.append(fname)
+
+   # -----------------------------
+   # end of boilerplate-getfiles

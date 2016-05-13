@@ -1,0 +1,26 @@
+   # start of boilerplate-deploy
+   # ---------------------------
+
+   sync_tool = os.path.join(bin, "wof-sync-files")			# go-whosonfirst-s3
+   index_tool = os.path.join(bin, "wof-es-index-filelist")		# py-mapzen-whosonfirst-search
+   clone_tool = os.path.join(bin, "wof-clone-metafiles")		# go-whosonfirst-clone
+   bundle_tool = os.path.join(bin, "wof-bundle-placetypes")		# py-mapzen-whosonfirst-bundles
+
+   do_s3 = cfg.getboolean('post-push', 's3')
+   do_es = cfg.getboolean('post-push', 'es')
+   do_bundles = cfg.getboolean('post-push', 'bundle')
+
+   if do_s3:
+      import wof.s3
+      wof.s3.sync_files(base, files, sync_tool, cfg)
+
+   if do_es:
+      import wof.es
+      wof.es.sync_files(base, files, index_tool, cfg)
+
+   if do_bundles:
+      import wof.bundles
+      wof.bundles.update_bundles(base, bundle_tool, clone_tool, cfg)
+
+   # -------------------------
+   # end of boilerplate-deploy
