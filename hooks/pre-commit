@@ -52,13 +52,11 @@ if __name__ == '__main__':
    sys.path.append(lib)
 
    import wof.common
-   import wof.validate
-   import wof.meta
-   import wof.concordances
 
    wof.common.check_pylibs()
 
-   wof.common.ensure_is_wofdata()
+   base = os.path.abspath(os.getcwd())
+   wof.common.ensure_is_wof_repo(base)
 
    start_commit = options.start_commit
    stop_commit = options.stop_commit
@@ -80,7 +78,7 @@ if __name__ == '__main__':
       logging.info("nothing in this commit that we need to apply pre-commit hooks to")
       sys.exit(0)
 
-   wof.common.ensure_valid_wof_documents(files)
+   wof.common.ensure_valid_wof_documents(base, files)
 
    # PLEASE WRITE ME
 

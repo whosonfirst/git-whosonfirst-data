@@ -1,18 +1,25 @@
+import os
+import sys
 import logging
+
 import pkg_resources
 import requests
 
 import mapzen.whosonfirst.utils
 
-import wof.validate
+import validate
+import meta
+import concordances
 
 # things starting with 'check_' return True or False
 # things starting with 'ensure_' return None if True or sys.exit(1)
 
-def check_is_wofdata():
+def check_is_wof_repo(repo=None):
 
-   root = os.getcwd()
-   base = os.path.basename(root)
+   if not repo:
+      repo = os.getcwd()
+
+   base = os.path.basename(repo)
 
    if not base.startswith("whosonfirst-data"):
       return False
@@ -43,9 +50,9 @@ def check_pylibs():
 
    return True
 
-def ensure_is_wofdata():
+def ensure_is_wof_repo(repo=None):
 
-   if not check_is_wofdata():
+   if not check_is_wof_repo(repo=None):
       sys.exit(1)
 
 def ensure_hooks_cfg():
@@ -56,9 +63,9 @@ def ensure_pylibs():
    if not check_pylibs():
       sys.exit(1)
 
-def ensure_valid_wof_documents(files):
+def ensure_valid_wof_documents(base, files):
 
-   if not wof.validate.validate_files(repo, files):
+   if not validate.validate_files(base, files):
       logging.error("one or more files failed validation")
       sys.exit(1)
 
@@ -88,7 +95,7 @@ def update_ancillary_files(base, updated):
    modified = []
    created = []
 
-   _modified, _created = wof.meta.update_metafiles(base, updated)
+   _modified, _created = meta.update_metafiles(base, updated)
 
    for path in _modified:
       path = path.replace(base + "/", "")
@@ -98,7 +105,7 @@ def update_ancillary_files(base, updated):
       path = path.replace(base + "/", "")
       created.append(path)
 
-   _modified, _created = wof.concordances.update_concordances(base, updated)
+   _modified, _created = concordances.update_concordances(base, updated)
 
    for path in _modified:
       path = path.replace(base + "/", "")
