@@ -82,7 +82,9 @@ if __name__ == '__main__':
 
    hooks = os.path.dirname(whoami)
    root = os.path.dirname(hooks)
+
    bin = os.path.join(root, "bin")
+   lib = os.path.join(root, "lib")
 
    logging.info("append %s to path" % bin)
    sys.path.append(bin)
@@ -100,53 +102,15 @@ if __name__ == '__main__':
 
    logging.info("invoking git-whosonfirst-mapzen post-push hooks for %s - %s" % (start_commit, stop_commit))
 
-   diff = mapzen.whosonfirst.git.get_diff(start_commit, stop_commit)
+   data = os.path.join(base, "data")
+   meta = os.path.join(base, "meta")
+
+   files = mapzen.whosonfirst.git.get_diff(start_commit, stop_commit)
    logging.info("invoking hooks on %s possible files" % len(diff))
-
-   #
-
-   data = os.path.join(root, "data")
-   meta = os.path.join(root, "meta")
-
-   files = []
-
-   for rel_path in diff:
-
-      parsed = mapzen.whosonfirst.utils.parse_filename(rel_path)
-
-      if not parsed:
-         continue
-
-      # See this - this bit is important. The go-whosonfirst-s3 SyncFile
-      # function assumes that it is working with absolute paths in order
-      # to know how to prune and append the relevant bits in order to 
-      # figure out who's on first (hahaha...) both locally and remotely
-      # in a world where they two sources may have different parents. The
-      # code (in Go) in question is included below as a reference. Please
-      # do not expect anything to work if you uncomment it...
-      # (20151123/thisisaaronland)
-      
-      """
-
-        dest := source
-        dest = strings.Replace(dest, root, "", -1)
-
-        if sink.Prefix != "" {
-                dest = path.Join(sink.Prefix, dest)
-        }
-
-      """
-
-      abs_path = os.path.abspath(rel_path)
-      files.append(abs_path)
 
    if len(files) == 0 and not options.force:
       logging.info("nothing in this commit that we need to apply post-push-async hooks to")
       sys.exit(0)
-
-   hooks = os.path.dirname(whoami)
-   hooks_root = os.path.dirname(hooks)
-   bin = os.path.join(hooks_root, 'bin')
    
    whatami = sys.platform
 
@@ -165,156 +129,20 @@ if __name__ == '__main__':
    clone_tool = os.path.join(bin, "wof-clone-metafiles")		# go-whosonfirst-clone
    bundle_tool = os.path.join(bin, "wof-bundle-placetypes")		# py-mapzen-whosonfirst-bundles
 
-   do_slack = cfg.getboolean('post-push', 'slack')
-   slack_config = None
-
-   if do_slack and cfg.has_option('post-push', 'slack_config'):
-      slack_config = cfg.get('post-push', 'slack_config')
-      slack_config = os.path.abspath(slack_config)
-
    do_s3 = cfg.getboolean('post-push', 's3')
-
-   s3_bucket = cfg.get('post-push', 's3_bucket')
-   s3_prefix = None
-   s3_credentials = None
-
-   if cfg.has_option('post-push', 's3_prefix'):
-      s3_prefix = cfg.get('post-push', 's3_prefix')
-
-   if cfg.has_option('post-push', 's3_credentials'):
-      s3_crendentials = cfg.get('post-push', 's3_credentials')
-   
-   if do_s3:
-
-      fh = tempfile.NamedTemporaryFile(delete=False)
-      tmpfile = fh.name
-
-      fh.write("\n".join(files))
-      fh.close()
-
-      cmd = [
-         sync_tool,
-         "-bucket", s3_bucket,
-         "-root", data,
-         "-processes", "200",
-         "-file-list", tmpfile,
-         "-tidy"	# this will unlink tmpfile
-      ]
-      
-      if s3_prefix:
-         cmd.extend(["-prefix", s3_prefix])
-
-      if s3_credentials:
-         cmd.extend(["-credentials", s3_credentials])
-
-      if do_slack:
-         cmd.extend([
-            "-slack"
-         ])
-
-      if slack_config:
-         cmd.extend([
-            "-slack-config",
-            slack_config,
-         ])
-
-      str_cmd = " ".join(cmd)
-      logging.info("getting ready to %s" % str_cmd)
-
-      # Run cmd as a background process and exit out of git post-push hoohah
-      # https://stackoverflow.com/questions/89228/calling-an-external-command-in-python#2251026
-      # 
-      # I can not get the following args (to Popen) to work
-      # because... well, I have no idea (20151123/thisisaaronland)
-      
-      # creationflags=subprocess.DETACHED_PROCESS)
-
-      p = subprocess.Popen(cmd)
-      pid = p.pid
-
-      logging.info("launched with PID %s" % (pid))
-
-      # For example:
-      #
-      # INFO:root:getting ready to /usr/local/mapzen/go-whosonfirst-s3/bin/wof-sync-files -bucket whosonfirst.mapzen.com -root /usr/local/data/whosonfirst-data/data \
-      # -file-list /tmp/tmp3zHxja -tidy -slack -slack-config /usr/local/slackcat/.slackcat.conf
-      # INFO:root:launched with PID 9629
-      # $> ps -p 9629
-      # PID TTY          TIME CMD
-      # 9629 pts/8    00:00:08 wof-sync-files
-      #
-      # And then in 15.623659793s the following gets written to STDOUT (and to slack if so configured):
-      # [wof-sync-files] 23:16:44.105606 [status] Scheduled 733 Completed 733 Success 634 Error 0 Skipped 99 Time 15.623659793s
-
    do_es = cfg.getboolean('post-push', 'es')
-
-   if do_es:
-
-      es_host = cfg.get('post-push', 'es_host')
-      es_port = cfg.get('post-push', 'es_port')
-
-      fh = tempfile.NamedTemporaryFile(delete=False)
-      tmpfile = fh.name
-
-      fh.write("\n".join(files))
-      fh.close()
-
-      cmd = [
-         index_tool,
-         "--host", es_host,
-         "--port", es_port,
-         "--tidy"
-      ]
-
-
-      if do_slack:
-         cmd.extend([
-            "--slack"
-         ])
-
-      if slack_config:
-         cmd.extend([
-            "--slack-config",
-            slack_config,
-         ])
-
-      cmd.append(tmpfile)
-
-      str_cmd = " ".join(cmd)
-      logging.info("getting ready to %s" % str_cmd)
-
-      p = subprocess.Popen(cmd)
-      pid = p.pid
-
-      logging.info("launched with PID %s" % (pid))
-
-   # generate new bundles
-
    do_bundles = cfg.getboolean('post-push', 'bundle')
 
+   if do_s3:
+      import wof.s3
+      wof.s3.sync_files(base, files, sync_tool, cfg)
+
+   if do_es:
+      import wof.es
+      wof.es.sync_files(base, files, index_tool, cfg)
+
    if do_bundles:
-
-      bundle_dest = cfg.get('post-push', 'bundle_dest')
-      bundle_dest = os.path.abspath(bundle_dest)
-      
-      cmd = [
-         bundle_tool, 
-         "-s", root,
-         "-d", bundle_dest,
-         "-S", "latest",
-         "--wof-clone", clone_tool,
-         "--aws-bucket", s3_bucket,
-      ]
-
-      if s3_credentials:
-         cmd.extend(["--aws-creds", s3_credentials])
-
-      str_cmd = " ".join(cmd)
-      logging.info("getting ready to %s" % str_cmd)
-
-      p = subprocess.Popen(cmd)
-      pid = p.pid
-
-      logging.info("launched with PID %s" % (pid))
+      import wof.bundles
+      wof.bundles.update_bundles(base, bundle_tool, clone_tool, cfg)
 
    sys.exit(0)

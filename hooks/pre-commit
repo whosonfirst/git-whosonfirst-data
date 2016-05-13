@@ -83,10 +83,12 @@ if __name__ == '__main__':
 
    hooks = os.path.dirname(whoami)
    root = os.path.dirname(hooks)
-   bin = os.path.join(root, "bin")
 
-   logging.info("append %s to path" % bin)
-   sys.path.append(bin)
+   bin = os.path.join(root, "bin")
+   lib = os.path.join(root, "lib")
+
+   logging.info("append %s to path" % lib)
+   sys.path.append(lib)
 
    # What do we have to work with...
 

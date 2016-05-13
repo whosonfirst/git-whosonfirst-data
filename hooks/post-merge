@@ -34,7 +34,7 @@ if __name__ == '__main__':
    else:
       logging.basicConfig(level=logging.INFO)
 
-   #
+   # sudo put me in a library?
 
    # who's on first... har har har... sad trombone - remember that unlike
    # the other git hooks which are meant to be copied over to the wof-data
@@ -48,6 +48,10 @@ if __name__ == '__main__':
       logging.error("I don't think I am being invoked in the whosonfirst-data-* repository... RUNNING AWAY SCARED")
       sys.exit(1)
 
+   # end-of sudo put me in a library?
+
+   # sudo put me in a library?
+
    # In case some one is running this straight out of the
    # .git/hooks folder
 
@@ -55,6 +59,8 @@ if __name__ == '__main__':
 
    if os.path.islink(whoami):
       whoami = os.path.realpath(whoami)
+
+   # end-of sudo put me in a library?
 
    # Can has config?
 
@@ -72,6 +78,17 @@ if __name__ == '__main__':
 
    #
 
+   hooks = os.path.dirname(whoami)
+   root = os.path.dirname(hooks)
+
+   bin = os.path.join(root, "bin")
+   lib = os.path.join(root, "lib")
+
+   logging.info("append %s to path" % lib)
+   sys.path.append(lib)
+
+   # sudo put me in a library?
+
    whatami = sys.platform
 
    if whatami == 'darwin':
@@ -84,16 +101,7 @@ if __name__ == '__main__':
       logging.error("unknown or unsupported platform: %s" % whatami)
       sys.exit(1)
 
-   #
-
-   hooks = os.path.dirname(whoami)
-   root = os.path.dirname(hooks)
-   bin = os.path.join(root, "bin")
-
-   logging.info("append %s to path" % bin)
-   sys.path.append(bin)
-
-   #
+   # end-of sudo put me in a library?
 
    start_commit = options.start_commit
    stop_commit = options.stop_commit
@@ -110,9 +118,9 @@ if __name__ == '__main__':
 
    logging.info("invoking git-whosonfirst-mapzen post-merge hooks for %s - %s" % (start_commit, stop_commit))
 
-   diff = mapzen.whosonfirst.git.get_diff(start_commit, stop_commit)
+   files = mapzen.whosonfirst.git.get_diff(start_commit, stop_commit)
 
-   if len(diff) == 0:
+   if len(files) == 0:
       logging.info("apparently there are no changes... which is weird... like life, sometimes")
       sys.exit(0)
 
@@ -121,7 +129,7 @@ if __name__ == '__main__':
    dotchanged = ".changed-%s-%s" % (start_commit, stop_commit)
    fh = open(dotchanged, "w")
 
-   for fname in diff:
+   for fname in files:
       logging.info("%s has changed" % fname)
       fh.write("%s\n" % fname)
 
@@ -132,7 +140,7 @@ if __name__ == '__main__':
 
    import wof.validate
 
-   if not wof.validate.validate_files(repo, diff):
+   if not wof.validate.validate_files(repo, files):
       logging.error("one or more files failed validation")
       sys.exit(1)
 
@@ -144,40 +152,43 @@ if __name__ == '__main__':
    modified = []
    created = []
 
-   _modified, _created = wof.meta.update_metafiles(repo, diff)
+   _modified, _created = wof.meta.update_metafiles(repo, files)
 
    modified.extend(_modified)
    created.extend(_created)
 
-   _modified, _created = wof.concordances.update_concordances(repo, diff)
+   _modified, _created = wof.concordances.update_concordances(repo, files)
 
    modified.extend(_modified)
    created.extend(_created)
 
-   # do something with modified and created here...
+   # do something with modified and created here... like commit them, etc.
    # (20160512/thisisaaronland)
 
-   #
+   # sudo put me a library?
 
    sync_tool = os.path.join(bin, "wof-sync-files")			# go-whosonfirst-s3
    index_tool = os.path.join(bin, "wof-es-index-filelist")		# py-mapzen-whosonfirst-search
    clone_tool = os.path.join(bin, "wof-clone-metafiles")		# go-whosonfirst-clone
    bundle_tool = os.path.join(bin, "wof-bundle-placetypes")		# py-mapzen-whosonfirst-bundles
 
-   import wof.s3
-   import wof.es
-   import wof.bundles
+   do_s3 = cfg.getboolean('post-push', 's3')
+   do_es = cfg.getboolean('post-push', 'es')
+   do_bundles = cfg.getboolean('post-push', 'bundle')
 
-   s3_pid = wof.s3.sync_files(base, files, sync_tool, cfg)
-   logging.info("syncing S3 files with PID %s" % s3_pid)
+   if do_s3:
+      import wof.s3
+      wof.s3.sync_files(base, files, sync_tool, cfg)
 
-   es_pid = wof.es.sync_files(base, files, index_tool, cfg)
-   logging.info("syncing ES files with PID %s" % s3_pid)
+   if do_es:
+      import wof.es
+      wof.es.sync_files(base, files, index_tool, cfg)
 
-   bundles_pid = wof.bundles.update_bundles(base, bundle_tool, clone_tool, cfg)
-   logging.info("syncing ES files with PID %s" % s3_pid)
+   if do_bundles:
+      import wof.bundles
+      wof.bundles.update_bundles(base, bundle_tool, clone_tool, cfg)
 
-   #
+   # end-of sudo put me a library?
 
    logging.info("removing %s" % dotchanged)
    os.unlink(dotchanged)

@@ -40,7 +40,7 @@ data/859/726/99/85972699.geojson
 ## validating files
 
 ```
-$> cat .changed-* | sort | uniq | grep geojson | /path/to/git-whosonfirst-data/bin/wof/validate.py -r `pwd`
+$> cat .changed-* | sort | uniq | grep geojson | /path/to/git-whosonfirst-data/lib/wof/validate.py -r `pwd`
 
 INFO:root:validating /usr/local/data/whosonfirst-data/data/101/723/183/101723183.geojson
 INFO:root:validating /usr/local/data/whosonfirst-data/data/101/748/047/101748047.geojson
@@ -61,6 +61,9 @@ INFO:root:all done
 Or
 
 ```
+import sys
+sys.append("/path/to/git-whosonfirst-data/lib")
+
 import wof.validate
 ok = wof.validate.validate_files(repo, files)
 ```
@@ -68,7 +71,7 @@ ok = wof.validate.validate_files(repo, files)
 ## updating meta files
 
 ```
-$> cat .changed-* | sort | uniq | grep geojson | /path/to/git-whosonfirst-data/bin/wof/meta.py -r `pwd`
+$> cat .changed-* | sort | uniq | grep geojson | /path/to/git-whosonfirst-data/lib/wof/meta.py -r `pwd`
 
 INFO:root:rebuild meta file for placetype country with one update
 INFO:root:copy /usr/local/data/whosonfirst-data/meta/wof-country-20160512.csv to /usr/local/data/whosonfirst-data/meta/wof-country-latest.csv
@@ -86,6 +89,9 @@ INFO:root:all done
 Or:
 
 ```
+import sys
+sys.append("/path/to/git-whosonfirst-data/lib")
+
 import wof.meta
 modified, created = wof.meta.update_metafiles(repo, files)
 ```
@@ -93,7 +99,7 @@ modified, created = wof.meta.update_metafiles(repo, files)
 ## updating concordances
 
 ```
-$> cat .changed-* | sort | uniq | grep geojson | /path/to/git-whosonfirst-data/bin/wof/concordances.py -r `pwd`
+$> cat .changed-* | sort | uniq | grep geojson | /path/to/git-whosonfirst-data/lib/wof/concordances.py -r `pwd`
 
 INFO:root:count updated: 13 count updated w/ updated concordances: 0
 INFO:root:all done
@@ -102,6 +108,9 @@ INFO:root:all done
 Or:
 
 ```
+import sys
+sys.append("/path/to/git-whosonfirst-data/lib")
+
 import wof.concordances
 modified, created = wof.concordances.update_concordances(repo, files)
 ```
@@ -109,7 +118,7 @@ modified, created = wof.concordances.update_concordances(repo, files)
 ## syncing to S3
 
 ```
-$> cat .changed-* | sort | uniq | grep geojson | /path/to/git-whosonfirst-data/bin/wof/s3.py -r `pwd` -c /path/to/git-whosonfirst-data/hooks/hooks.cfg -S /path/to/wof-sync-files
+$> cat .changed-* | sort | uniq | grep geojson | /path/to/git-whosonfirst-data/lib/wof/s3.py -r `pwd` -c /path/to/git-whosonfirst-data/hooks/hooks.cfg -S /path/to/wof-sync-files
 
 INFO:root:launched with PID 2553
 [wof-sync-files] 22:19:26.685129 [info] creating a new Sync thing-y with 200 processes
@@ -120,6 +129,9 @@ INFO:root:launched with PID 2553
 Or:
 
 ```
+import sys
+sys.append("/path/to/git-whosonfirst-data/lib")
+
 import ConfigParser
 import wof.s3
 
@@ -132,7 +144,7 @@ pid = wof.s3.sync_files(root, files, sync_tool, cfg)
 ## syncing to ES (Elasticsearch)
 
 ```
-$> cat .changed-* | sort | uniq | grep geojson | /path/to/git-whosonfirst-data/bin/wof/es.py -r `pwd` -c /path/to/git-whosonfirst-data/hooks/hooks.cfg -S /path/to/wof-es-index-filelist
+$> cat .changed-* | sort | uniq | grep geojson | /path/to/git-whosonfirst-data/lib/wof/es.py -r `pwd` -c /path/to/git-whosonfirst-data/hooks/hooks.cfg -S /path/to/wof-es-index-filelist
 
 INFO:root:getting ready to /path/to/git-whosonfirst-data/bin/linux/wof-es-index-filelist --host 9.9.9.9 --port 9200 --tidy /tmp/tmpzjGb3B
 INFO:root:launched with PID 1488
@@ -148,6 +160,9 @@ WARNING:root:remove tag 'ne:level' because ES suffers from E_EXCESSIVE_CLEVERNES
 Or:
 
 ```
+import sys
+sys.append("/path/to/git-whosonfirst-data/lib")
+
 import ConfigParser
 import wof.es
 
@@ -160,7 +175,7 @@ pid = wof.es.sync_files(root, files, sync_tool, cfg)
 ## updating bundle files
 
 ```
-$> cat .changed-* | sort | uniq | grep geojson | /path/to/git-whosonfirst-data/bin/wof/bundles.py -r `pwd` -c /path/to/git-whosonfirst-data/hooks/hooks.cfg -B /path/to/git-whosonfirst-data/bin/linux/wof-bundle-placetypes -C /path/to/git-whosonfirst-data/bin/linux/wof-clone-metafiles
+$> cat .changed-* | sort | uniq | grep geojson | /path/to/git-whosonfirst-data/lib/wof/bundles.py -r `pwd` -c /path/to/git-whosonfirst-data/hooks/hooks.cfg -B /path/to/git-whosonfirst-data/bin/linux/wof-bundle-placetypes -C /path/to/git-whosonfirst-data/bin/linux/wof-clone-metafiles
 
 INFO:root:getting ready to /path/to/git-whosonfirst-data/bin/linux/wof-bundle-placetypes -s /usr/local/data/whosonfirst-data -d /usr/local/data/whosonfirst-bundles -S lat\
 est --wof-clone /path/to/git-whosonfirst-data/bin/linux/wof-clone-metafiles --aws-bucket whosonfirst.mapzen.com
@@ -210,6 +225,9 @@ tines: 48 time: 1.999876812s
 Or:
 
 ```
+import sys
+sys.append("/path/to/git-whosonfirst-data/lib")
+
 import ConfigParser
 import wof.bundles
 
