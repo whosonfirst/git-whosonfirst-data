@@ -1,16 +1,12 @@
 #!/usr/bin/env python
 # -*-python-*-
 
-# Please to be reading this before you start making changes here:
-# https://github.com/whosonfirst/git-whosonfirst-data#caveats
-
 import os
 import sys
 import logging
 
 import subprocess
 
-import mapzen.whosonfirst.utils
 import mapzen.whosonfirst.git
 
 logging.basicConfig(level=logging.INFO)
@@ -32,36 +28,30 @@ if __name__ == '__main__':
    else:
       logging.basicConfig(level=logging.INFO)
 
+   # In case some one is running this straight out of the
+   # .git/hooks folder
 
+   whoami = os.path.abspath(sys.argv[0])
 
-   # What do we have to work with...
-
-   start_commit = options.start_commit
-   stop_commit = options.stop_commit
-
-   if not start_commit:
-      start_commit = mapzen.whosonfirst.git.get_previous_hash()
-
-   if not stop_commit:
-      stop_commit = mapzen.whosonfirst.git.get_current_hash()
-
-   logging.info("invoking git-whosonfirst-mapzen post-push hooks for %s - %s" % (start_commit, stop_commit))
-
-   # I am not sure we even need any of this... (20160331/thisisaaronland)
-   # diff = mapzen.whosonfirst.git.get_diff(start_commit, stop_commit)
-   # logging.info("invoking hooks on %s possible files" % len(diff))
-
-   #
-
-   whoami = sys.argv[0]
-   whoami = os.path.abspath(whoami)
+   if os.path.islink(whoami):
+      whoami = os.path.realpath(whoami)
 
    hooks = os.path.dirname(whoami)
-   dotgit = os.path.dirname(hooks)
-   root = os.path.dirname(dotgit)
+   root = os.path.dirname(hooks)
 
-   data = os.path.join(root, "data")
-   meta = os.path.join(root, "meta")
+   bin = os.path.join(root, "bin")
+   lib = os.path.join(root, "lib")
+
+   logging.info("append %s to path" % lib)
+   sys.path.append(lib)
+
+   import wof.common
+   wof.common.check_pylibs()
+
+   base = os.path.abspath(os.getcwd())
+   wof.common.ensure_is_wof_repo(base)
+
+   logging.info("invoking git-whosonfirst-mapzen post-commit hooks for %s - %s" % (start_commit, stop_commit))
 
    files = []
 
@@ -70,59 +60,63 @@ if __name__ == '__main__':
 
    dotcommit = os.path.join(base, ".commit")
 
-   if os.path.exists(dotcommit):
+   if not os.path.exists(dotcommit):
+      logging.info("%s does not exist, so apparently there is nothing for post-commit hooks to do")
+      sys.exit(0)
 
-      logging.info("%s exists, so I am going to look for files that have been modified" % dotcommit)
+   logging.info("%s exists, so I am going to look for files that have been modified" % dotcommit)
 
-      to_add = []
+   to_add = []
 
-      fh = open(dotcommit)
+   fh = open(dotcommit)
 
-      for rel_path in fh.readlines():
+   for rel_path in fh.readlines():
 
-         rel_path = rel_path.strip()
-         abs_path = os.path.join(base, rel_path)
-
-         if not os.path.exists(abs_path):
-            continue
-
-         to_add.append(rel_path)
+      rel_path = rel_path.strip()
+      abs_path = os.path.join(base, rel_path)
       
-      fh.close()
-      os.unlink(dotcommit)
+      if not os.path.exists(abs_path):
+         continue
 
-      if len(to_add):
+      to_add.append(rel_path)
+      
+   fh.close()
+   os.unlink(dotcommit)
 
-         cmd = ["git", "add", "meta"]
+   if not len(to_add):
+      logging.info("%s did not contain any files to process... which is weird")
+      sys.exit(0)
 
-         # Hey look - see what's happening here? We're only
-         # "adding" stuff in the meta directory since that's
-         # the only place that (as of this writing) new files
-         # should have been created. The alternative is the
-         # scenario descibed in issue #3 where I tried to add
-         # 90K files on the command-line. The results were
-         # entirely predictable in retrospect....
-         # (20151117/thisisaaronland)
+   cmd = ["git", "add", "meta"]
 
-         # cmd.extend(to_add)
-         
-         out = subprocess.check_output(cmd)
-
-         logging.info(" ".join(cmd))
-         logging.debug(out)
-
-         # note the --no-verify flag  - this is very very very important
-         # without it you will send git in to an endless spiral where it
-         # invokes the pre-commit hook... which you know maybe is a good
-         # interview question (good albeit cruel) but isn't very useful
-         # for actually getting any work done... (20151112/thisisaaronland)
-
-         cmd = ["git", "commit", "--amend", "-C", stop_commit, "--no-verify"]
-         logging.debug(" ".join(cmd))
-
-         out = subprocess.check_output(cmd)
-         logging.info(out)
-
+   # Hey look - see what's happening here? We're only
+   # "adding" stuff in the meta directory since that's
+   # the only place that (as of this writing) new files
+   # should have been created. The alternative is the
+   # scenario descibed in issue #3 where I tried to add
+   # 90K files on the command-line. The results were
+   # entirely predictable in retrospect....
+   # (20151117/thisisaaronland)
+   
+   # cmd.extend(to_add)
+   
+   out = subprocess.check_output(cmd)
+   
+   logging.info(" ".join(cmd))
+   logging.debug(out)
+   
+   # note the --no-verify flag  - this is very very very important
+   # without it you will send git in to an endless spiral where it
+   # invokes the pre-commit hook... which you know maybe is a good
+   # interview question (good albeit cruel) but isn't very useful
+   # for actually getting any work done... (20151112/thisisaaronland)
+   
+   cmd = ["git", "commit", "--amend", "-C", stop_commit, "--no-verify"]
+   logging.debug(" ".join(cmd))
+   
+   out = subprocess.check_output(cmd)
+   logging.info(out)
+   
    # see also: post-push-async for handling commits
    # see also: post-merge for handling PRs and merges
 
