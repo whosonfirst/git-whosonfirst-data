@@ -20,6 +20,8 @@ if __name__ == '__main__':
    import optparse
    opt_parser = optparse.OptionParser()
 
+   opt_parser.add_option('-c', '--config', dest='config', action='store', default=None, help='')
+
    opt_parser.add_option('--start-commit', dest='start_commit', action='store', default=None, help='The starting commit hash for determining changes (default is HEAD -2)')
    opt_parser.add_option('--stop-commit', dest='stop_commit', action='store', default=None, help='The ending commit hash for determining changes (default is HEAD -1)')
 
@@ -31,6 +33,67 @@ if __name__ == '__main__':
       logging.basicConfig(level=logging.DEBUG)
    else:
       logging.basicConfig(level=logging.INFO)
+
+   #
+
+   # who's on first... har har har... sad trombone - remember that unlike
+   # the other git hooks which are meant to be copied over to the wof-data
+   # .git/hooks repository this one is stored somewhere and meant to be
+   # invoked *from* the wof-data repository (20151113/thisisaaronland)
+
+   root = os.getcwd()
+   base = os.path.basename(root)
+
+   if not base.startswith("whosonfirst-data"):
+      logging.error("I don't think I am being invoked in the whosonfirst-data-* repository... RUNNING AWAY SCARED")
+      sys.exit(1)
+
+   # In case some one is running this straight out of the
+   # .git/hooks folder
+
+   whoami = os.path.abspath(sys.argv[0])
+
+   if os.path.islink(whoami):
+      whoami = os.path.realpath(whoami)
+
+   # Can has config?
+
+   if not options.config:
+
+      hooks = os.path.dirname(whoami)
+      path_config = os.path.join(hooks, 'hooks.cfg')
+
+   else:
+      path_config = os.path.abspath(options.config)
+
+   if not os.path.exists(path_config):
+      logging.error("INVISIBLE CONFIG FILE %s" % path_config)
+      sys.exit(1)
+
+   #
+
+   whatami = sys.platform
+
+   if whatami == 'darwin':
+      bin = os.path.join(bin, "osx")
+   elif whatami == 'win32':
+      bin = os.path.join(bin, "windows")
+   elif whatami == 'linux' or whatami == 'linux2':	# seriously... I have no idea what linux2 is...
+      bin = os.path.join(bin, "linux")        
+   else:
+      logging.error("unknown or unsupported platform: %s" % whatami)
+      sys.exit(1)
+
+   #
+
+   hooks = os.path.dirname(whoami)
+   root = os.path.dirname(hooks)
+   bin = os.path.join(root, "bin")
+
+   logging.info("append %s to path" % bin)
+   sys.path.append(bin)
+
+   #
 
    start_commit = options.start_commit
    stop_commit = options.stop_commit
@@ -53,15 +116,10 @@ if __name__ == '__main__':
       logging.info("apparently there are no changes... which is weird... like life, sometimes")
       sys.exit(0)
 
+   #
+
    dotchanged = ".changed-%s-%s" % (start_commit, stop_commit)
    fh = open(dotchanged, "w")
-
-   # if necessary - for example if we get changes from a PR from someone who
-   # doesn't have all the hoohah to generate ancillary files then we want to
-   # - generate meta files
-   # - trigger bundle making
-   # - clone to s3
-   # - clone to ES (maybe?)
 
    for fname in diff:
       logging.info("%s has changed" % fname)
@@ -70,6 +128,58 @@ if __name__ == '__main__':
    fh.close()
    logging.info("created %s with the list of files that have been updated" % dotchanged)
 
-   # cat .changed-* | sort | uniq | grep geojson > .process
+   #
+
+   import wof.validate
+
+   if not wof.validate.validate_files(repo, diff):
+      logging.error("one or more files failed validation")
+      sys.exit(1)
+
+   #
+
+   import wof.meta
+   import wof.concordances
+
+   modified = []
+   created = []
+
+   _modified, _created = wof.meta.update_metafiles(repo, diff)
+
+   modified.extend(_modified)
+   created.extend(_created)
+
+   _modified, _created = wof.concordances.update_concordances(repo, diff)
+
+   modified.extend(_modified)
+   created.extend(_created)
+
+   # do something with modified and created here...
+   # (20160512/thisisaaronland)
+
+   #
+
+   sync_tool = os.path.join(bin, "wof-sync-files")			# go-whosonfirst-s3
+   index_tool = os.path.join(bin, "wof-es-index-filelist")		# py-mapzen-whosonfirst-search
+   clone_tool = os.path.join(bin, "wof-clone-metafiles")		# go-whosonfirst-clone
+   bundle_tool = os.path.join(bin, "wof-bundle-placetypes")		# py-mapzen-whosonfirst-bundles
+
+   import wof.s3
+   import wof.es
+   import wof.bundles
+
+   s3_pid = wof.s3.sync_files(base, files, sync_tool, cfg)
+   logging.info("syncing S3 files with PID %s" % s3_pid)
+
+   es_pid = wof.es.sync_files(base, files, index_tool, cfg)
+   logging.info("syncing ES files with PID %s" % s3_pid)
+
+   bundles_pid = wof.bundles.update_bundles(base, bundle_tool, clone_tool, cfg)
+   logging.info("syncing ES files with PID %s" % s3_pid)
+
+   #
+
+   logging.info("removing %s" % dotchanged)
+   os.unlink(dotchanged)
 
    sys.exit(0)
