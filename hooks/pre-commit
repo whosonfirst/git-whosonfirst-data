@@ -15,12 +15,7 @@ import subprocess
 import pkg_resources
 import requests
 
-import StringIO
-
-import mapzen.whosonfirst.validator
-import mapzen.whosonfirst.export
 import mapzen.whosonfirst.utils
-import mapzen.whosonfirst.diff
 import mapzen.whosonfirst.git
 
 logging.basicConfig(level=logging.INFO)
@@ -76,6 +71,23 @@ if __name__ == '__main__':
       logging.error("I don't think I am being invoked in the whosonfirst-data-* repository... RUNNING AWAY SCARED")
       sys.exit(1)
 
+   # In case some one is running this straight out of the
+   # .git/hooks folder
+
+   whoami = os.path.abspath(sys.argv[0])
+
+   if os.path.islink(whoami):
+      whoami = os.path.realpath(whoami)
+
+   #
+
+   hooks = os.path.dirname(whoami)
+   root = os.path.dirname(hooks)
+   bin = os.path.join(root, "bin")
+
+   logging.info("append %s to path" % bin)
+   sys.path.append(bin)
+
    # What do we have to work with...
 
    start_commit = options.start_commit
@@ -93,16 +105,6 @@ if __name__ == '__main__':
    logging.info("invoking hooks on %s possible files" % len(diff))
 
    #
-
-   whoami = sys.argv[0]
-   whoami = os.path.abspath(whoami)
-
-   hooks = os.path.dirname(whoami)
-   dotgit = os.path.dirname(hooks)
-   root = os.path.dirname(dotgit)
-
-   data = os.path.join(root, "data")
-   meta = os.path.join(root, "meta")
 
    files = []
 
@@ -125,34 +127,23 @@ if __name__ == '__main__':
       logging.info("nothing in this commit that we need to apply pre-commit hooks to")
       sys.exit(0)
 
-   vld = mapzen.whosonfirst.validator.validator()
+   #
+
+   import wof.validate
+
+   if not wof.validate.validate_files(repo, files):
+      logging.error("one or more files failed validation")
+      sys.exit(1)
+
+   #
 
    updated = []
    recommit = []
 
-   # sudo replace with wof-validate-files
-   # (20160512/thisisaaronland)
-
    for rel_path in files:
 
-      abs_path = os.path.join(root, rel_path)
+      abs_path = os.path.join(base, rel_path)
       logging.info("validating %s" % abs_path)
-
-      rpt = vld.validate_file(abs_path)
-
-      if not rpt.ok():
-
-         logging.error("%s FAILED validation test" % abs_path)
-
-         # sudo make the following less bad...
-         # (20151111/thisisaaronland)
-
-         fh = StringIO.StringIO()
-         rpt.print_report(fh)
-         fh.seek(0)
-
-         logging.error("validation report is:\n%s" % "".join(fh.readlines()))
-         sys.exit(1)
 
       updated.append(abs_path)
       recommit.append(rel_path)
@@ -162,67 +153,29 @@ if __name__ == '__main__':
    modified = []
    created = []
 
-   # meta files
+   import wof.meta
+   import wof.concordances
 
-   # these are the meta files (including the -latest.csv pointers) that need to be made relative
-   # in order to dance with the git commit
-
-   # ensure relative paths to files in the meta files
-
-   meta_kwargs = {
-      'paths': 'relative',
-      'prefix': data,
-   }
-
-   _modified, _created = mapzen.whosonfirst.utils.update_placetype_metafiles(meta, updated, **meta_kwargs)
+   _modified, _created = wof.meta.update_metafiles(base, updated)
 
    for path in _modified:
-      path = path.replace(root + "/", "")
+      path = path.replace(base + "/", "")
       modified.append(path)
 
    for path in _created:
-      path = path.replace(root + "/", "")
+      path = path.replace(base + "/", "")
       created.append(path)
 
-   # Concordances - IMPORTANT: per the caveats in the 'update_concordances_metafile'
-   # method we are still not pruning files in updated for only those with actual
-   # updates (to their concordances). This is being done with the mapzen.whosonfirst.diff
-   # library. We will probably move this up the stack (in this workflow) at some point
-   # but for today it lives here... (20160122/thisisaaronland)
+   _modified, _created = wof.concordances.update_concordances(base, updated)
 
-   diff = mapzen.whosonfirst.diff.compare(source=root)
-   updated_concordances = []
-
-   for path in updated:
-
-      path = os.path.abspath(path)
-      id, ignore = mapzen.whosonfirst.utils.parse_filename(path)
-
-      try:
-         report = diff.report(id)
-         logging.info("change report for %s: %s" % (path, report))
-
-         if report['concordances'] == True:
-            updated_concordances.append(path)
-      except Exception, e:
-         logging.warning("failed to generate report for %s, because %s" % (path, e))
-
-   logging.info("count updated: %d count updated w/ updated concordances: %d" % (len(updated), len(updated_concordances)))
-
-   if updated_concordances:
-      concordances = meta			# this will change (20160119/thisisaaronland)
-      concordances_kwargs = meta_kwargs		# these probably won't change but giving them a bespoke name anyway
-
-      _modified, _created = mapzen.whosonfirst.utils.update_concordances_metafile(concordances, updated_concordances, **concordances_kwargs)
-
-      for path in _modified:
-         path = path.replace(root + "/", "")
-         modified.append(path)
-
-      for path in _created:
-         path = path.replace(root + "/", "")
-         created.append(path)
-
+   for path in _modified:
+      path = path.replace(base + "/", "")
+      modified.append(path)
+      
+   for path in _created:
+      path = path.replace(base + "/", "")
+      created.append(path)
+      
    # phew!
 
    recommit.extend(modified)

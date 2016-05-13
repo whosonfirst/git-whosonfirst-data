@@ -29,23 +29,6 @@ if __name__ == '__main__':
    opt_parser.add_option('-c', '--config', dest='config', action='store', default=None, help='')
    opt_parser.add_option('-f', '--force', dest='force', action='store_true', default=False, help='')
 
-   """
-   opt_parser.add_option('--s3', dest='s3', action='store_true', default=False, help='Sync files to S3 (default is False)')
-   opt_parser.add_option('--s3-bucket', dest='s3_bucket', action='store', default=None, help='The name of the S3 bucket to sync files to')
-   opt_parser.add_option('--s3-prefix', dest='s3_prefix', action='store', default=None, help='The name of the prefix to sync files in the S3 bucket to')
-   opt_parser.add_option('--s3-credentials', dest='s3_credentials', action='store', default=None, help='The path to your AWS S3 credentials')
-
-   opt_parser.add_option('--es', dest='es', action='store_true', default=False, help='Sync files to Elasticsearch (default is False)')
-   opt_parser.add_option('--es-host', dest='es_host', action='store', default='localhost', help='The hostname of the Elasticsearch endpoint (default is localhost)')
-   opt_parser.add_option('--es-port', dest='es_port', action='store', default='9200', help='The hostname of the Elasticsearch endpoint (default is 9200)')
-
-   opt_parser.add_option('--bundle', dest='bundle', action='store_true', default=False, help='Regenerate placetype bundles (default is False)')
-   opt_parser.add_option('--bundle-dest', dest='bundle_dest', action='store', default=None, help='Where placetype bundles are stored locally (default is None)')
-
-   opt_parser.add_option('--slack', dest='slack', action='store_true', default=False, help='Send a message to a Slack channel (using the WOF fork of slackcat) once all the transfers are complete')
-   opt_parser.add_option('--slack-config', dest='slack_config', action='store', default=None, help='The path to your slackcat config file')
-   """
-
    opt_parser.add_option('--start-commit', dest='start_commit', action='store', default=None, help='The starting commit hash for determining changes (default is HEAD -2)')
    opt_parser.add_option('--stop-commit', dest='stop_commit', action='store', default=None, help='The ending commit hash for determining changes (default is HEAD -1)')
 
@@ -94,6 +77,15 @@ if __name__ == '__main__':
 
    cfg = ConfigParser.ConfigParser()
    cfg.read(path_config)
+
+   #
+
+   hooks = os.path.dirname(whoami)
+   root = os.path.dirname(hooks)
+   bin = os.path.join(root, "bin")
+
+   logging.info("append %s to path" % bin)
+   sys.path.append(bin)
 
    # What do we have to work with...
 

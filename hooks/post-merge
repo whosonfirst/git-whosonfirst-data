@@ -22,7 +22,7 @@ if __name__ == '__main__':
 
    opt_parser.add_option('-c', '--config', dest='config', action='store', default=None, help='')
 
-   opt_parser.add_option('--start-commit', dest='start_commit', action='store', default=None, help='The starting commit hash for determining changes (default is HEAD -2)')
+   opt_parser.add_option('--start-commit', dest='start_commit', action='store', default=None, help='The starting commit hash for determining changes (default is HEAD -2 --no-merges)')
    opt_parser.add_option('--stop-commit', dest='stop_commit', action='store', default=None, help='The ending commit hash for determining changes (default is HEAD -1)')
 
    opt_parser.add_option('-v', '--verbose', dest='verbose', action='store_true', default=True, help='Be chatty (default is false)')
