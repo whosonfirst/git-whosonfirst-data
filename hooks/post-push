@@ -41,18 +41,6 @@ if __name__ == '__main__':
    else:
       logging.basicConfig(level=logging.INFO)
 
-   # who's on first... har har har... sad trombone - remember that unlike
-   # the other git hooks which are meant to be copied over to the wof-data
-   # .git/hooks repository this one is stored somewhere and meant to be
-   # invoked *from* the wof-data repository (20151113/thisisaaronland)
-
-   root = os.getcwd()
-   base = os.path.basename(root)
-
-   if not base.startswith("whosonfirst-data"):
-      logging.error("I don't think I am being invoked in the whosonfirst-data-* repository... RUNNING AWAY SCARED")
-      sys.exit(1)
-
    # In case some one is running this straight out of the
    # .git/hooks folder
 
@@ -60,6 +48,35 @@ if __name__ == '__main__':
 
    if os.path.islink(whoami):
       whoami = os.path.realpath(whoami)
+
+   hooks = os.path.dirname(whoami)
+   root = os.path.dirname(hooks)
+
+   bin = os.path.join(root, "bin")
+   lib = os.path.join(root, "lib")
+
+   logging.info("append %s to path" % lib)
+   sys.path.append(lib)
+
+   import wof.common
+
+   wof.common.check_pylibs()
+
+   base = os.path.abspath(os.getcwd())
+   wof.common.ensure_is_wof_repo(base)
+
+   start_commit = options.start_commit
+   stop_commit = options.stop_commit
+
+   """
+   if not start_commit:
+      start_commit = mapzen.whosonfirst.git.get_previous_hash()
+
+   if not stop_commit:
+      stop_commit = mapzen.whosonfirst.git.get_current_hash()
+   """
+
+   logging.info("invoking git-whosonfirst-mapzen pre-comit hooks for %s - %s" % (start_commit, stop_commit))
 
    # Can has config?
 
@@ -80,33 +97,8 @@ if __name__ == '__main__':
 
    #
 
-   hooks = os.path.dirname(whoami)
-   root = os.path.dirname(hooks)
-
-   bin = os.path.join(root, "bin")
-   lib = os.path.join(root, "lib")
-
-   logging.info("append %s to path" % bin)
-   sys.path.append(bin)
-
-   # What do we have to work with...
-
-   start_commit = options.start_commit
-   stop_commit = options.stop_commit
-
-   if not start_commit:
-      start_commit = mapzen.whosonfirst.git.get_previous_hash()
-
-   if not stop_commit:
-      stop_commit = mapzen.whosonfirst.git.get_current_hash()
-
-   logging.info("invoking git-whosonfirst-mapzen post-push hooks for %s - %s" % (start_commit, stop_commit))
-
-   data = os.path.join(base, "data")
-   meta = os.path.join(base, "meta")
-
    files = mapzen.whosonfirst.git.get_diff(start_commit, stop_commit)
-   logging.info("invoking hooks on %s possible files" % len(diff))
+   logging.info("invoking hooks on %s possible files" % len(files))
 
    if len(files) == 0 and not options.force:
       logging.info("nothing in this commit that we need to apply post-push-async hooks to")
@@ -139,7 +131,7 @@ if __name__ == '__main__':
 
    if do_es:
       import wof.es
-      wof.es.sync_files(base, files, index_tool, cfg)
+      wof.es.index_files(base, files, index_tool, cfg)
 
    if do_bundles:
       import wof.bundles

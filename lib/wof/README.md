@@ -166,10 +166,10 @@ sys.append("/path/to/git-whosonfirst-data/lib")
 import ConfigParser
 import wof.es
 
-sync_tool='/path/to/wof-es-index-filelist'
+index_tool='/path/to/wof-es-index-filelist'
 cfg = ConfigParser.read(...)
 
-pid = wof.es.sync_files(root, files, sync_tool, cfg)
+pid = wof.es.index_files(root, files, index_tool, cfg)
 ```
 
 ## updating bundle files

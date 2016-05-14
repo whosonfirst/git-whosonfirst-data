@@ -20,7 +20,7 @@ WARNING:root:remove tag 'ne:adm0_dif' because ES suffers from E_EXCESSIVE_CLEVER
 WARNING:root:remove tag 'ne:level' because ES suffers from E_EXCESSIVE_CLEVERNESS
 """
 
-def sync_files(root, files, sync_tool, cfg):
+def index_files(root, files, index_tool, cfg):
 
     es_host = cfg.get('post-push', 'es_host')
     es_port = cfg.get('post-push', 'es_port')

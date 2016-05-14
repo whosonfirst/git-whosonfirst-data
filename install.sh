@@ -31,7 +31,7 @@ fi
 
 # Install the hooks
 
-for HOOK in "pre-commit" "post-commit" "post-merge" "post-push-async"
+for HOOK in "pre-commit" "post-commit" "post-merge" "post-push"
 do
 
     if [ -f ${GITHOOKS}/${HOOK} ]
