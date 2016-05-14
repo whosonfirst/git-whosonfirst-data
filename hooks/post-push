@@ -22,7 +22,6 @@ import mapzen.whosonfirst.git
 if __name__ == '__main__':
 
    import optparse
-   import ConfigParser
 
    opt_parser = optparse.OptionParser()
 
@@ -65,6 +64,10 @@ if __name__ == '__main__':
    base = os.path.abspath(os.getcwd())
    wof.common.ensure_is_wof_repo(base)
 
+   cfg = wof.common.ensure_hooks_cfg(whoami, options.config)
+
+   #
+
    start_commit = options.start_commit
    stop_commit = options.stop_commit
 
@@ -74,23 +77,6 @@ if __name__ == '__main__':
 
       last_commit = mapzen.whosonfirst.git.get_current_hash()
       logging.info("invoking git-whosonfirst-mapzen pre-commit hooks for whatever is different from %s" % last_commit)
-
-   # Can has config?
-
-   if not options.config:
-
-      hooks = os.path.dirname(whoami)
-      path_config = os.path.join(hooks, 'hooks.cfg')
-
-   else:
-      path_config = os.path.abspath(options.config)
-
-   if not os.path.exists(path_config):
-      logging.error("INVISIBLE CONFIG FILE %s" % path_config)
-      sys.exit(1)
-
-   cfg = ConfigParser.ConfigParser()
-   cfg.read(path_config)
 
    #
 
@@ -106,6 +92,8 @@ if __name__ == '__main__':
    if len(files) == 0:
       logging.info("nothing in this commit that we need to apply pre-commit hooks to")
       sys.exit(0)
+
+   # SUDO PUT ME IN common.py
 
    whatami = sys.platform
 
@@ -139,5 +127,7 @@ if __name__ == '__main__':
    if do_bundles:
       import wof.bundles
       wof.bundles.update_bundles(base, bundle_tool, clone_tool, cfg)
+
+   # end of SUDO PUT ME IN common.py
 
    sys.exit(0)
