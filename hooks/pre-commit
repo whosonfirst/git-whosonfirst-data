@@ -57,13 +57,10 @@ if __name__ == '__main__':
    start_commit = options.start_commit
    stop_commit = options.stop_commit
 
-   if not start_commit:
-      start_commit = mapzen.whosonfirst.git.get_previous_hash()
-
-   if not stop_commit:
-      stop_commit = mapzen.whosonfirst.git.get_current_hash()
-
-   logging.info("invoking git-whosonfirst-mapzen post-push hooks for %s - %s" % (start_commit, stop_commit))
+   if start_commit and stop_commit:
+      logging.info("invoking git-whosonfirst-mapzen pre-comit hooks for %s - %s" % (start_commit, stop_commit))
+   else:
+      logging.info("invoking git-whosonfirst-mapzen pre-commit hooks for whatever is different")
 
    diff = mapzen.whosonfirst.git.get_diff(start_commit, stop_commit)
    logging.info("invoking hooks on %s possible files" % len(diff))
@@ -111,8 +108,5 @@ if __name__ == '__main__':
       fh = open(dotcommit, "w")
       fh.write("\n".join(recommit))
       fh.close()
-
-   logging.error("YAHOO SAYS NO")
-   sys.exit(1)
 
    sys.exit(0)

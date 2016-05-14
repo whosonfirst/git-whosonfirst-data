@@ -16,9 +16,6 @@ if __name__ == '__main__':
    import optparse
    opt_parser = optparse.OptionParser()
 
-   opt_parser.add_option('--start-commit', dest='start_commit', action='store', default=None, help='The starting commit hash for determining changes (default is HEAD -2)')
-   opt_parser.add_option('--stop-commit', dest='stop_commit', action='store', default=None, help='The ending commit hash for determining changes (default is HEAD -1)')
-
    opt_parser.add_option('-v', '--verbose', dest='verbose', action='store_true', default=False, help='Be chatty (default is false)')
    
    options, args = opt_parser.parse_args()
@@ -51,7 +48,7 @@ if __name__ == '__main__':
    base = os.path.abspath(os.getcwd())
    wof.common.ensure_is_wof_repo(base)
 
-   logging.info("invoking git-whosonfirst-mapzen post-commit hooks for %s - %s" % (start_commit, stop_commit))
+   logging.info("invoking git-whosonfirst-mapzen post-commit hooks")
 
    files = []
 
@@ -61,7 +58,7 @@ if __name__ == '__main__':
    dotcommit = os.path.join(base, ".commit")
 
    if not os.path.exists(dotcommit):
-      logging.info("%s does not exist, so apparently there is nothing for post-commit hooks to do")
+      logging.info("%s does not exist, so apparently there is nothing for post-commit hooks to do" % dotcommit)
       sys.exit(0)
 
    logging.info("%s exists, so I am going to look for files that have been modified" % dotcommit)
@@ -81,11 +78,15 @@ if __name__ == '__main__':
       to_add.append(rel_path)
       
    fh.close()
+
+   logging.info("remove %s" % dotcommit)
    os.unlink(dotcommit)
 
    if not len(to_add):
       logging.info("%s did not contain any files to process... which is weird")
       sys.exit(0)
+
+   stop_commit = mapzen.whosonfirst.git.get_current_hash()
 
    cmd = ["git", "add", "meta"]
 
