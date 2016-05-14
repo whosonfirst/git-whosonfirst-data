@@ -60,7 +60,9 @@ if __name__ == '__main__':
    if start_commit and stop_commit:
       logging.info("invoking git-whosonfirst-mapzen pre-comit hooks for %s - %s" % (start_commit, stop_commit))
    else:
-      logging.info("invoking git-whosonfirst-mapzen pre-commit hooks for whatever is different")
+
+      last_commit = mapzen.whosonfirst.git.get_current_hash()
+      logging.info("invoking git-whosonfirst-mapzen pre-commit hooks for whatever is different from %s" % last_commit)
 
    diff = mapzen.whosonfirst.git.get_diff(start_commit, stop_commit)
    logging.info("invoking hooks on %s possible files" % len(diff))

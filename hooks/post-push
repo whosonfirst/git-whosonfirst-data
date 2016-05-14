@@ -68,15 +68,12 @@ if __name__ == '__main__':
    start_commit = options.start_commit
    stop_commit = options.stop_commit
 
-   """
-   if not start_commit:
-      start_commit = mapzen.whosonfirst.git.get_previous_hash()
+   if start_commit and stop_commit:
+      logging.info("invoking git-whosonfirst-mapzen pre-comit hooks for %s - %s" % (start_commit, stop_commit))
+   else:
 
-   if not stop_commit:
-      stop_commit = mapzen.whosonfirst.git.get_current_hash()
-   """
-
-   logging.info("invoking git-whosonfirst-mapzen pre-comit hooks for %s - %s" % (start_commit, stop_commit))
+      last_commit = mapzen.whosonfirst.git.get_current_hash()
+      logging.info("invoking git-whosonfirst-mapzen pre-commit hooks for whatever is different from %s" % last_commit)
 
    # Can has config?
 
@@ -97,13 +94,19 @@ if __name__ == '__main__':
 
    #
 
-   files = mapzen.whosonfirst.git.get_diff(start_commit, stop_commit)
-   logging.info("invoking hooks on %s possible files" % len(files))
+   diff = mapzen.whosonfirst.git.get_diff(start_commit, stop_commit)
+   logging.info("invoking hooks on %s possible files" % len(diff))
 
-   if len(files) == 0 and not options.force:
+   if len(diff) == 0:
       logging.info("nothing in this commit that we need to apply post-push-async hooks to")
       sys.exit(0)
    
+   files = wof.common.filter_for_wof_documents(diff)
+
+   if len(files) == 0:
+      logging.info("nothing in this commit that we need to apply pre-commit hooks to")
+      sys.exit(0)
+
    whatami = sys.platform
 
    if whatami == 'darwin':
