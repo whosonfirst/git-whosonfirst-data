@@ -38,6 +38,7 @@ if __name__ == '__main__':
    # .git/hooks folder
 
    whoami = os.path.abspath(sys.argv[0])
+   whatami = os.path.basename(whoami)
 
    if os.path.islink(whoami):
       whoami = os.path.realpath(whoami)
@@ -65,17 +66,18 @@ if __name__ == '__main__':
    start_commit = options.start_commit
    stop_commit = options.stop_commit
 
-   if not start_commit:
+   if start_commit:
 
-      # skip things we've merged and start from the last known commit here - maybe?
-      # see also: https://github.com/whosonfirst/git-whosonfirst-data/issues/11
+      if not stop_commit:
+         last_commit = mapzen.whosonfirst.git.get_current_hash()
+         stop_commit = last_commit
 
-      start_commit = mapzen.whosonfirst.git.get_previous_hash(merges=False)
+      logging.info("invoking git-whosonfirst-mapzen %s hooks for %s - %s" % (whatami, start_commit, stop_commit))
 
-   if not stop_commit:
-      stop_commit = mapzen.whosonfirst.git.get_current_hash()
+   else:
 
-   logging.info("invoking git-whosonfirst-mapzen post-merge hooks for %s - %s" % (start_commit, stop_commit))
+      last_commit = mapzen.whosonfirst.git.get_current_hash()
+      logging.info("invoking git-whosonfirst-mapzen %s hooks for whatever is different from %s" % (whatami, last_commit))
 
    diff = mapzen.whosonfirst.git.get_diff(start_commit, stop_commit)
    logging.info("invoking hooks on %s possible files" % len(diff))

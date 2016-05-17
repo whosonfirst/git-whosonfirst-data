@@ -34,6 +34,7 @@ if __name__ == '__main__':
    # .git/hooks folder
 
    whoami = os.path.abspath(sys.argv[0])
+   whatami = os.path.basename(whoami)
 
    if os.path.islink(whoami):
       whoami = os.path.realpath(whoami)
@@ -57,12 +58,18 @@ if __name__ == '__main__':
    start_commit = options.start_commit
    stop_commit = options.stop_commit
 
-   if start_commit and stop_commit:
-      logging.info("invoking git-whosonfirst-mapzen pre-comit hooks for %s - %s" % (start_commit, stop_commit))
+   if start_commit:
+
+      if not stop_commit:
+         last_commit = mapzen.whosonfirst.git.get_current_hash()
+         stop_commit = last_commit
+
+      logging.info("invoking git-whosonfirst-mapzen %s hooks for %s - %s" % (whatami, start_commit, stop_commit))
+
    else:
 
       last_commit = mapzen.whosonfirst.git.get_current_hash()
-      logging.info("invoking git-whosonfirst-mapzen pre-commit hooks for whatever is different from %s" % last_commit)
+      logging.info("invoking git-whosonfirst-mapzen %s hooks for whatever is different from %s" % (whatami, last_commit))
 
    diff = mapzen.whosonfirst.git.get_diff(start_commit, stop_commit)
    logging.info("invoking hooks on %s possible files" % len(diff))
