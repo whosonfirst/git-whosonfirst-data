@@ -38,15 +38,17 @@ def sync_files(root, files, sync_tool, cfg):
     cmd = [
         sync_tool,
         "-bucket", s3_bucket,
-        "-root", data,
+        "-root", root,
         "-processes", "200",
         "-file-list", tmpfile,
-        # "-loglevel", "debug"
-        "-tidy"	# this will unlink tmpfile
+        "-loglevel", "debug"
+        # "-tidy"	# this will unlink tmpfile
     ]
     
     if s3_prefix:
         cmd.extend(["-prefix", s3_prefix])
+    else:
+        cmd.extend(["-prefix", ""])
 
     if s3_credentials:
         cmd.extend(["-credentials", s3_credentials])
