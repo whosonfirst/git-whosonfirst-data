@@ -29,7 +29,9 @@ if __name__ == '__main__':
    else:
       logging.basicConfig(level=logging.INFO)
 
-   mapzen.whosonfirst.is_current(liberal=True)
+   if not mapzen.whosonfirst.is_current(liberal=True):
+      logging.error("E_INSUFFICENT_MAPZEN")
+      sys.exit(1)
 
    # In case some one is running this straight out of the
    # .git/hooks folder
