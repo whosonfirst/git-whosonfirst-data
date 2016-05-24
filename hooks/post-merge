@@ -10,6 +10,7 @@ import logging
 
 import subprocess
 
+import mapzen.whosonfirst
 import mapzen.whosonfirst.utils
 import mapzen.whosonfirst.git
 
@@ -32,6 +33,8 @@ if __name__ == '__main__':
    else:
       logging.basicConfig(level=logging.INFO)
 
+   mapzen.whosonfirst.is_current(liberal=True)
+
    # In case some one is running this straight out of the
    # .git/hooks folder
 
@@ -51,8 +54,6 @@ if __name__ == '__main__':
    sys.path.append(lib)
 
    import wof.common
-
-   wof.common.check_pylibs()
 
    base = os.path.abspath(os.getcwd())
    wof.common.ensure_is_wof_repo(base)

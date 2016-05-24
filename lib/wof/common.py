@@ -28,30 +28,6 @@ def check_is_wof_repo(repo=None):
 
    return True
 
-def check_pylibs():
-
-   pymz = pkg_resources.get_distribution("mapzen.whosonfirst").version
-   pymz = pymz.rstrip("-")
-
-   current = None
-
-   try:
-      logging.info("I am going to try and see whether you are using the most recent version of py-mapzen-whosonfirst...")
-
-      rsp = requests.get("https://raw.githubusercontent.com/whosonfirst/py-mapzen-whosonfirst/master/VERSION")
-      current = rsp.content
-      current = current.strip()
-
-   except Exception, e:
-      logging.warning("Failed to determine ACTUAL current version of py-mapzen-whosonfirst, because %s (setting current to %s for now but don't be surprised if HILARITY ensues...)" % (e, pymz))
-      current = pymz
-
-   if pymz != current:
-      logging.warning("You are running version %s of py-mapzen-whosonfirst but the current version is %s - you should update because HILARITY may ensue if you don't" % (pymz, current))
-      return False
-
-   return True
-
 def ensure_is_wof_repo(repo=None):
 
    if not check_is_wof_repo(repo=None):
