@@ -129,8 +129,6 @@ if __name__ == '__main__':
    do_es = cfg.getboolean('post-push', 'es')
    do_bundles = cfg.getboolean('post-push', 'bundle')
 
-   print "HELLO"
-
    if do_s3:
       import wof.s3
       wof.s3.sync_files(base, files, sync_tool, cfg)
@@ -147,5 +145,42 @@ if __name__ == '__main__':
 
    logging.info("removing %s" % dotchanged)
    os.unlink(dotchanged)
+
+   # have we updated any meta files?
+
+   cmd = [ "git", "ls-files", "--modified", "--other" ]
+   out = subprocess.check_output(cmd)
+
+   logging.info(" ".join(cmd))
+   logging.debug(out)
+
+   update_meta = False
+
+   for ln in out.splitlines():
+
+      if ln.endswith("~"):
+         continue
+
+      if ln.startswith("meta/") and ln.endswith(".csv"):
+         update_meta = True
+         break
+
+   if update_meta:
+
+      cmd = ["git", "add", "meta"]
+      out = subprocess.check_output(cmd)
+   
+      logging.info(" ".join(cmd))
+      logging.debug(out)
+
+      msg = "'update meta files post-merge (%s - %s)'" % (start_commit, stop_commit)
+
+      cmd = ["git", "commit", "-m", msg, "meta"]
+      logging.debug(" ".join(cmd))
+      
+      out = subprocess.check_output(cmd)
+      logging.info(out)
+      
+      logging.warning("meta files added and commited by NOT pushed")
 
    sys.exit(0)
