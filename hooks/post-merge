@@ -83,13 +83,13 @@ if __name__ == '__main__':
    logging.info("invoking hooks on %s possible files" % len(diff))
 
    if len(diff) == 0:
-      logging.info("nothing in this commit that we need to apply post-push-async hooks to")
+      logging.info("nothing in this commit that we need to apply %s hooks to" % whatami)
       sys.exit(0)
    
    files = wof.common.filter_for_wof_documents(diff)
 
    if len(files) == 0:
-      logging.info("nothing in this commit that we need to apply pre-commit hooks to")
+      logging.info("nothing in this commit that we need to apply %s hooks to" % whatami)
       sys.exit(0)
 
    #

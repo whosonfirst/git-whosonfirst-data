@@ -77,7 +77,7 @@ if __name__ == '__main__':
    files = wof.common.filter_for_wof_documents(diff)
 
    if len(files) == 0:
-      logging.info("nothing in this commit that we need to apply pre-commit hooks to")
+      logging.info("nothing in this commit that we need to apply %s hooks to" % whatami)
       sys.exit(0)
 
    wof.common.ensure_valid_wof_documents(base, files)

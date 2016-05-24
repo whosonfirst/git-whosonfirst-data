@@ -58,7 +58,7 @@ if __name__ == '__main__':
    dotcommit = os.path.join(base, ".commit")
 
    if not os.path.exists(dotcommit):
-      logging.info("%s does not exist, so apparently there is nothing for post-commit hooks to do" % dotcommit)
+      logging.info("%s does not exist, so apparently there is nothing for %s hooks to do" % (dotcommit, whatami))
       sys.exit(0)
 
    logging.info("%s exists, so I am going to look for files that have been modified" % dotcommit)
