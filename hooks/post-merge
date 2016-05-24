@@ -13,8 +13,6 @@ import subprocess
 import mapzen.whosonfirst.utils
 import mapzen.whosonfirst.git
 
-logging.basicConfig(level=logging.INFO)
-
 if __name__ == '__main__':
 
    import optparse
@@ -66,18 +64,15 @@ if __name__ == '__main__':
    start_commit = options.start_commit
    stop_commit = options.stop_commit
 
-   if start_commit:
+   if not start_commit:
 
-      if not stop_commit:
-         last_commit = mapzen.whosonfirst.git.get_current_hash()
-         stop_commit = last_commit
+      start_commit = mapzen.whosonfirst.git.get_previous_hash(merges=False)
 
-      logging.info("invoking git-whosonfirst-mapzen %s hooks for %s - %s" % (whatami, start_commit, stop_commit))
-
-   else:
-
+   if not stop_commit:
       last_commit = mapzen.whosonfirst.git.get_current_hash()
-      logging.info("invoking git-whosonfirst-mapzen %s hooks for whatever is different from %s" % (whatami, last_commit))
+      stop_commit = last_commit
+
+   logging.info("invoking git-whosonfirst-mapzen %s hooks for %s - %s" % (whatami, start_commit, stop_commit))
 
    diff = mapzen.whosonfirst.git.get_diff(start_commit, stop_commit)
    logging.info("invoking hooks on %s possible files" % len(diff))
