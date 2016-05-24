@@ -46,7 +46,7 @@ def index_files(root, files, index_tool, cfg):
         "--port", es_port,
         "--tidy"
     ]
-    
+
     """
     if do_slack:
     cmd.extend([

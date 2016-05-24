@@ -23,7 +23,7 @@ if __name__ == '__main__':
    opt_parser.add_option('--start-commit', dest='start_commit', action='store', default=None, help='The starting commit hash for determining changes (default is HEAD -2 --no-merges)')
    opt_parser.add_option('--stop-commit', dest='stop_commit', action='store', default=None, help='The ending commit hash for determining changes (default is HEAD -1)')
 
-   opt_parser.add_option('-v', '--verbose', dest='verbose', action='store_true', default=True, help='Be chatty (default is false)')
+   opt_parser.add_option('-v', '--verbose', dest='verbose', action='store_true', default=False, help='Be chatty (default is false)')
    
    options, args = opt_parser.parse_args()
 
@@ -129,13 +129,15 @@ if __name__ == '__main__':
    do_es = cfg.getboolean('post-push', 'es')
    do_bundles = cfg.getboolean('post-push', 'bundle')
 
+   print "HELLO"
+
    if do_s3:
       import wof.s3
       wof.s3.sync_files(base, files, sync_tool, cfg)
 
    if do_es:
       import wof.es
-      wof.es.sync_files(base, files, index_tool, cfg)
+      wof.es.index_files(base, files, index_tool, cfg)
 
    if do_bundles:
       import wof.bundles
