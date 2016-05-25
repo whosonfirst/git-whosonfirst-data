@@ -65,8 +65,6 @@ if __name__ == '__main__':
 
    import wof.common
 
-   wof.common.check_pylibs()
-
    base = os.path.abspath(os.getcwd())
    wof.common.ensure_is_wof_repo(base)
 
