@@ -32,6 +32,7 @@ if __name__ == '__main__':
    # .git/hooks folder
 
    whoami = os.path.abspath(sys.argv[0])
+   whatami = os.path.basename(whoami)
 
    if os.path.islink(whoami):
       whoami = os.path.realpath(whoami)
@@ -44,7 +45,6 @@ if __name__ == '__main__':
 
    logging.info("append %s to path" % lib)
    sys.path.append(lib)
-
 
    import wof.common
 
