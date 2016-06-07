@@ -114,7 +114,7 @@ if __name__ == '__main__':
    whatami = sys.platform
 
    if whatami == 'darwin':
-      bin = os.path.join(bin, "osx")
+      bin = os.path.join(bin, "darwin")
    elif whatami == 'win32':
       bin = os.path.join(bin, "windows")
    elif whatami == 'linux' or whatami == 'linux2':	# seriously... I have no idea what linux2 is...
