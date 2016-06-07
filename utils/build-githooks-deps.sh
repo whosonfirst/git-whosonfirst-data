@@ -7,106 +7,72 @@
 # rebuild wof-sync-files for:
 # https://github.com/whosonfirst/git-whosonfirst-data
 
-GITWOF="/usr/local/mapzen/git-whosonfirst-data/"
+SOURCES=$1
+
+GITWOF="${SOURCES}/git-whosonfirst-data/"
 BIN="${GITWOF}bin/"
 
 ###################################################################
 
-cd /usr/local/mapzen/go-whosonfirst-s3                                                                                                                            
-export GOPATH=`pwd`                                                                                                                                               
-
-echo "build for OS X"
-
-if [ -f ${BIN}/osx/wof-sync-files ]
+if [ ! -d ${SOURCES} ]
 then
-    mv ${BIN}/osx/wof-sync-files ${BIN}/osx/wof-sync-files.bak
+    echo "Missing sources"
+    exit 1
 fi
-
-export GOOS='darwin'
-export GOARCH='amd64'
-
-go build -o ${BIN}/osx/wof-sync-files cmd/wof-sync-files.go                                                                   
-
-echo "build for Windows"
-
-if [ -f ${BIN}/windows/wof-sync-files ]
-then
-    mv ${BIN}/windows/wof-sync-files ${BIN}/windows/wof-sync-files.bak
-fi
-
-export GOOS='windows'
-export GOARCH='amd64'
-                                                                                               
-go build -o ${BIN}/windows/wof-sync-files cmd/wof-sync-files.go                                                               
-
-echo "build for Linux"
-
-if [ -f ${BIN}/linux/wof-sync-files ]
-then
-    mv ${BIN}/linux/wof-sync-files ${BIN}/linux/wof-sync-files.bak
-fi
-
-export GOOS='linux'                                                                                                                                               
-export GOARCH='amd64'
-
-go build -o ${BIN}/linux/wof-sync-files cmd/wof-sync-files.go 
 
 ###################################################################
 
-cd /usr/local/mapzen/go-whosonfirst-clone                                                                                                
-export GOPATH=`pwd`                                                                                                                                               
+# go things
 
-echo "build for OS X"
+for PAIR in go-whosonfirst-s3#wof-sync-files go-whosonfirst-clone#wof-clone-metafiles
+do
 
-if [ -f ${BIN}/osx/wof-clone-metafiles ]
-then
-    mv ${BIN}/osx/wof-clone-metafiles ${BIN}/osx/wof-clone-metafiles.bak
-fi
+    REPO=`echo ${PAIR} | awk -F '#' '{print $1}'`
+    TOOL=`echo ${PAIR} | awk -F '#' '{print $2}'`
 
-export GOOS='darwin'
-export GOARCH='amd64'
+    ROOT=${SOURCES}/${REPO}
+    cd ${ROOT}
 
-go build -o ${BIN}/osx/wof-clone-metafiles cmd/wof-clone-metafiles.go                                                                   
+    export GOPATH="${ROOT}"                                                                                                                                              
+    export GOARCH='amd64'
 
-echo "build for Windows"
+    for OS in darwin windows linux
+    do 
+	
+	export GOOS="${OS}"
+	
+	# if [ -f ${BIN}${OS}/${TOOL} ]
+	# then
+	#     mv ${BIN}${OS}/${TOOL} ${BIN}${OS}/${TOOL}.bak
+	# fi
 
-if [ -f ${BIN}/windows/wof-clone-metafiles ]
-then
-    mv ${BIN}/windows/wof-clone-metafiles ${BIN}/windows/wof-clone-metafiles.bak
-fi
+	echo "build ${TOOL} for ${OS}"
+	# go build -o ${BIN}${OS}/${TOOL} cmd/${TOOL}.go
 
-export GOOS='windows'
-export GOARCH='amd64'
-                                                                                               
-go build -o ${BIN}/windows/wof-clone-metafiles cmd/wof-clone-metafiles.go                                                               
-
-echo "build for Linux"
-
-if [ -f ${BIN}/linux/wof-clone-metafiles ]
-then
-    mv ${BIN}/linux/wof-clone-metafiles ${BIN}/linux/wof-clone-metafiles.bak
-fi
-
-export GOOS='linux'                                                                                                                                               
-export GOARCH='amd64'
-
-go build -o ${BIN}/linux/wof-clone-metafiles cmd/wof-clone-metafiles.go 
+	make build
+    done
+done
 
 ###################################################################
 
-cd /usr/local/mapzen/py-mapzen-whosonfirst-bundles
+# python things
 
-cp scripts/wof-bundle-placetypes ${BIN}/osx/wof-bundle-placetypes
-cp scripts/wof-bundle-placetypes ${BIN}/windows/wof-bundle-placetypes
-cp scripts/wof-bundle-placetypes ${BIN}/linux/wof-bundle-placetypes
+for PAIR in py-mapzen-whosonfirst-bundles#wof-bundle-placetypes py-mapzen-whosonfirst-search#wof-es-index-filelist
+do
 
-###################################################################
+    REPO=`echo ${PAIR} | awk -F '#' '{print $1}'`
+    TOOL=`echo ${PAIR} | awk -F '#' '{print $2}'`
 
-cd /usr/local/mapzen/py-mapzen-whosonfirst-search
+    ROOT=${SOURCES}/${REPO}
+    cd ${ROOT}
 
-cp scripts/wof-es-index-filelist ${BIN}/osx/wof-es-index-filelist
-cp scripts/wof-es-index-filelist ${BIN}/windows/wof-es-index-filelist
-cp scripts/wof-es-index-filelist ${BIN}/linux/wof-es-index-filelist
+    for OS in darwin windows linux
+    do 
+	echo "clone ${TOOL} for ${OS}"
+	cp scripts/${TOOL} ${BIN}${OS}/${TOOL}
+    done
+
+done
 
 ###################################################################
 
