@@ -5,6 +5,7 @@ import sys
 import logging
 
 import mapzen.whosonfirst.placetypes
+import mapzen.whosonfirst.placetypes.utils
 import mapzen.whosonfirst.bundles
 
 if __name__ == '__main__':
@@ -13,17 +14,25 @@ if __name__ == '__main__':
 
     opt_parser = optparse.OptionParser()
 
-    opt_parser.add_option('-s', '--source', dest='source', action='store', default=None, help='')
-    opt_parser.add_option('-d', '--dest', dest='dest', action='store', default=None, help='')
-    opt_parser.add_option('-p', '--placetypes', dest='placetypes', action='store', default=None, help='')
-    opt_parser.add_option('-S', '--suffix', dest='suffix', action='store', default='', help='')
-    # see below
+    opt_parser.add_option('-R', '--repo', dest='repo', action='store', default=None, help='Path to a valid WOF repo - this takes precedence over options.source, options.dest and options.name-template and assumes that options.repo has both a data and a meta directory')
+
+    opt_parser.add_option('-s', '--source', dest='source', action='store', default=None, help='Where the actual WOF data lives')
+    opt_parser.add_option('-d', '--dest', dest='dest', action='store', default=None, help='Where the bundle will be created')
+
+    opt_parser.add_option('-p', '--placetypes', dest='placetypes', action='store', default=None, help='The list of placetypes to bundles for. Default is everything with the following roles: common, common_optional, optional')
+    # this still needs to be implemented in py-mz-wof-placetypes-utils (20160608/thisisaaronland)
     # opt_parser.add_option('-r', '--roles', dest='roles', action='store', default=None, help='')
+    opt_parser.add_option('-i', '--ignore', dest='ignore', action='store', default=None, help='The list of placetypes to ignore when generating bundles')
+
+
+    opt_parser.add_option('-S', '--suffix', dest='suffix', action='store', default='', help='Append this suffix to the bundle name')
+    opt_parser.add_option('-n', '--name-template', dest='name_template', action='store', default=None, help='Apply this (Python string) template to each placetype in order to generate the bundle name')
+
     opt_parser.add_option('--wof-clone', dest='clone', action='store', default=None, help='')
     opt_parser.add_option('--aws-creds', dest='aws_creds', action='store', default=None, help='')
     opt_parser.add_option('--aws-bucket', dest='aws_bucket', action='store', default=None, help='')
 
-    opt_parser.add_option('-f', '--force', dest='force', action='store_true', default=False, help='... (default is False)')
+    opt_parser.add_option('-f', '--force', dest='force', action='store_true', default=False, help='For a bundle to be created even if the local and remote meta files are the same (default is False)')
     opt_parser.add_option('-v', '--verbose', dest='verbose', action='store_true', default=False, help='Be chatty (default is False)')
 
     options, args = opt_parser.parse_args()
@@ -33,9 +42,30 @@ if __name__ == '__main__':
     else:
         logging.basicConfig(level=logging.INFO)
 
+    #
+
+    src = options.source
+    dest = options.dest
+
+    name_template = options.name_template
+
+    if options.repo:
+
+        repo = os.path.abspath(options.repo)
+        src = repo
+
+        repo_name = os.path.basename(repo)
+        repo_name = repo_name.replace("whosonfirst-data", "")
+        repo_name = repo_name.lstrip("-")
+
+        repo_name = repo_name.split("-")
+        repo_name[0] = "%s"
+
+        name_template = "-".join(repo_name)
+
     kwargs = {
-        'source': options.source,
-        'dest': options.dest,
+        'source': src,
+        'dest': dest,
         'clone': options.clone,
         'aws_creds': options.aws_creds,
         'aws_bucket': options.aws_bucket,
@@ -44,36 +74,13 @@ if __name__ == '__main__':
 
     bdl = mapzen.whosonfirst.bundles.bundler(**kwargs)
 
-    # PLEASE PUT ME IN A LIBRARY... (20160127/thisisaaronland)
+    for pt in mapzen.whosonfirst.placetypes.utils.placetypes_from_options(options):
 
-    def placetypes(options):
+        name = pt
 
-        if options.placetypes:
+        if name_template:
+            name = name_template % name
 
-            placetypes = options.placetypes.split(",")
+        logging.info("bundle %s (%s)" % (name, options.suffix))
 
-            for pt in placetypes:
-                pt = pt.strip()
-
-                if not mapzen.whosonfirst.placetypes.is_valid_placetype(pt):
-                    logging.warning("%s is not a valid placetype, skipping")
-                    continue
-
-                yield pt
-
-        # TO DO options.roles
-
-        else:
-
-            for pt in mapzen.whosonfirst.placetypes.with_roles(['common', 'common_optional', 'optional']):
-                yield pt
-    
-    iter = placetypes(options)
-
-    for pt in iter:
-
-        logging.info("bundle %s (%s)" % (pt, options.suffix))
-
-        # TO DO: threads?
-
-        bdl.bundle(pt, suffix=options.suffix)
+        bdl.bundle(name, suffix=options.suffix)

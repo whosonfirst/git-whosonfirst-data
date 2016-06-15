@@ -1,2 +1,2 @@
 deps:
-	utils/build-githooks-deps.sh
+	utils/build-githooks-deps.sh $(SOURCE)

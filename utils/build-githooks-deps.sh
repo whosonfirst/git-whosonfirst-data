@@ -47,7 +47,7 @@ do
 	# fi
 
 	echo "build ${TOOL} for ${OS}"
-	# go build -o ${BIN}${OS}/${TOOL} cmd/${TOOL}.go
+	go build -o ${BIN}${OS}/${TOOL} cmd/${TOOL}.go
 
 	make build
     done
