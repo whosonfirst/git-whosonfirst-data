@@ -40,16 +40,8 @@ do
     do 
 	
 	export GOOS="${OS}"
-	
-	# if [ -f ${BIN}${OS}/${TOOL} ]
-	# then
-	#     mv ${BIN}${OS}/${TOOL} ${BIN}${OS}/${TOOL}.bak
-	# fi
-
 	echo "build ${TOOL} for ${OS}"
 	go build -o ${BIN}${OS}/${TOOL} cmd/${TOOL}.go
-
-	make build
     done
 done
 

@@ -70,6 +70,8 @@ if __name__ == '__main__':
    else:
 
       last_commit = mapzen.whosonfirst.git.get_current_hash()
+      start_commit = last_commit
+
       logging.info("invoking git-whosonfirst-mapzen %s hooks for whatever is different from %s" % (whatami, last_commit))
 
    diff = mapzen.whosonfirst.git.get_diff(start_commit, stop_commit)
