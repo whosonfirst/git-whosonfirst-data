@@ -33,6 +33,10 @@ def validate_files(root, files):
     for rel_path in files:
         
         abs_path = os.path.join(root, rel_path)
+
+        if not os.path.exists(abs_path):
+            continue
+
         logging.info("validating %s" % abs_path)
         
         rpt = vld.validate_file(abs_path)

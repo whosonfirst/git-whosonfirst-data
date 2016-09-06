@@ -94,6 +94,10 @@ if __name__ == '__main__':
    for rel_path in files:
 
       abs_path = os.path.join(base, rel_path)
+
+      if not os.path.exists(abs_path):
+         continue
+
       logging.info("validating %s" % abs_path)
 
       updated.append(abs_path)

@@ -35,6 +35,11 @@ def update_metafiles(root, files):
         'prefix': data,
     }
 
+    import pprint
+    print "UPDATE META %s" % meta
+    print pprint.pformat(meta_kwargs)
+    print pprint.pformat(files)
+
     return mapzen.whosonfirst.utils.update_placetype_metafiles(meta, files, **meta_kwargs)
 
 if __name__ == '__main__':
