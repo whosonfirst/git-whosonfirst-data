@@ -2,7 +2,7 @@
 # -*-python-*-
 
 """
-$> cat .changed-* | sort | uniq | grep geojson | ./wof-validate-files -r `pwd`
+$> cat .changed-* | sort | uniq | grep geojson | ./lib/wof/validate.py -r `pwd`
 INFO:root:validating /usr/local/data/whosonfirst-data/data/101/723/183/101723183.geojson
 INFO:root:validating /usr/local/data/whosonfirst-data/data/101/748/047/101748047.geojson
 INFO:root:validating /usr/local/data/whosonfirst-data/data/101/750/467/101750467.geojson
