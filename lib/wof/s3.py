@@ -29,6 +29,9 @@ def sync_files(root, files, sync_tool, cfg):
     s3_prefix = None
     s3_credentials = None
     
+    loglevel = "info"
+    tidy = True
+
     if cfg.has_option('post-push', 's3_prefix'):
         s3_prefix = cfg.get('post-push', 's3_prefix')
                 
@@ -41,9 +44,11 @@ def sync_files(root, files, sync_tool, cfg):
         "-root", root,
         "-processes", "200",
         "-file-list", tmpfile,
-        "-loglevel", "debug"
-        # "-tidy"	# this will unlink tmpfile
+        "-loglevel", loglevel
     ]
+
+    if tidy:
+        cmd.append("-tidy")	# this will unlink tmpfile
     
     if s3_prefix:
         cmd.extend(["-prefix", s3_prefix])

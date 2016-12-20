@@ -24,6 +24,7 @@ def index_files(root, files, index_tool, cfg):
 
     es_host = cfg.get('post-push', 'es_host')
     es_port = cfg.get('post-push', 'es_port')
+    es_index = cfg.get('post-push', 'es_index')
     
     """
     do_slack = cfg.getboolean('post-push', 'slack')
@@ -44,6 +45,7 @@ def index_files(root, files, index_tool, cfg):
         index_tool,
         "--host", es_host,
         "--port", es_port,
+        "--index", es_index,
         "--tidy"
     ]
 

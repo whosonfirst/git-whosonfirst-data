@@ -5,6 +5,7 @@ s3_prefix=
 es=
 es_host=
 es_port=
+es_index=
 slack=
 slack_config=
 bundle=
