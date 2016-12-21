@@ -16,6 +16,7 @@ if __name__ == '__main__':
 
     opt_parser.add_option('--host', dest='host', action='store', default='localhost', help='What host your search index lives (default is localhost)')
     opt_parser.add_option('--port', dest='port', action='store', default=9200, help='What port your search index lives on (default is 9200)')
+    opt_parser.add_option('--index', dest='index', action='store', default='whosonfirst', help='Where to write the records to (default is whosonfirst)')
     opt_parser.add_option('--prefix', dest='prefix', action='store', default=None, help='Append this prefix to all paths')
     opt_parser.add_option('--timeout', dest='timeout', action='store', default=600, help='Timeout in seconds for talking to you search index lives on (default is 600)')
     opt_parser.add_option('--tidy', dest='tidy', action='store_true', default=False, help='Remove files after they are processed (default is False)')
@@ -31,7 +32,7 @@ if __name__ == '__main__':
     else:
         logging.basicConfig(level=logging.WARNING)
 
-    idx = mapzen.whosonfirst.search.index(host=options.host, port=options.port, timeout=options.timeout)
+    idx = mapzen.whosonfirst.search.index(host=options.host, port=options.port, timeout=options.timeout, index=options.index)
 
     dt1 = datetime.datetime.now()
 
