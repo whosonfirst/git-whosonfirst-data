@@ -78,7 +78,6 @@ def update_ancillary_files(base, updated):
       path = path.replace(base + "/", "")
       created.append(path)
 
-   """
    _modified, _created = concordances.update_concordances(base, updated)
 
    for path in _modified:
@@ -88,6 +87,5 @@ def update_ancillary_files(base, updated):
    for path in _created:
       path = path.replace(base + "/", "")
       created.append(path)
-   """
 
    return modified, created
