@@ -86,8 +86,6 @@ if __name__ == '__main__':
 
    wof.common.ensure_valid_wof_documents(base, files)
 
-   # PLEASE WRITE ME
-
    updated = []
    recommit = []
 

@@ -121,7 +121,4 @@ if __name__ == '__main__':
    out = subprocess.check_output(cmd)
    logging.info(out)
    
-   # see also: post-push-async for handling commits
-   # see also: post-merge for handling PRs and merges
-
    sys.exit(0)

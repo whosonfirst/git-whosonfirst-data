@@ -5,8 +5,6 @@ import logging
 import pkg_resources
 import requests
 
-import ConfigParser
-
 import mapzen.whosonfirst.utils
 
 import validate
@@ -32,25 +30,6 @@ def ensure_is_wof_repo(repo=None):
 
    if not check_is_wof_repo(repo=None):
       sys.exit(1)
-
-def ensure_hooks_cfg(whoami, options_config):
-
-   if not options_config:
-
-      hooks = os.path.dirname(whoami)
-      path_config = os.path.join(hooks, 'hooks.cfg')
-
-   else:
-      path_config = os.path.abspath(options_config)
-
-   if not os.path.exists(path_config):
-      logging.error("INVISIBLE CONFIG FILE %s" % path_config)
-      sys.exit(1)
-
-   cfg = ConfigParser.ConfigParser()
-   cfg.read(path_config)
-
-   return cfg
 
 def ensure_pylibs():
 
