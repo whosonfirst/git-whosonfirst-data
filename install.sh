@@ -31,6 +31,15 @@ fi
 
 # Install the hooks
 
+for HOOK in "post-push" "post-merge"
+do
+    if [ -f ${GITHOOKS}/${HOOK} ]
+    then
+	echo "remove ${GITHOOKS}/${HOOK} (cleaning up old git hooks)"
+	rm ${GITHOOKS}/${HOOK}
+    fi
+done
+
 for HOOK in "pre-commit" "post-commit"
 do
 
